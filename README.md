@@ -1,6 +1,6 @@
 # Spotify Internal API js
 
-A Typescript library that has full coverage of the internal Spotitfy API within the developer documentation
+A Typescript library with nearly full coverage of the internal Spotitfy API within the developer documentation
 
 ## Get started
 
