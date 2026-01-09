@@ -1,3 +1,5 @@
+import { Track, TrackSnippet } from "../classes";
+
 export interface SpotifyWebhook {
     headers: {
         "content-type": string;
@@ -19,7 +21,7 @@ export interface Cluster {
     active_device_id: string;
     player_state: PlayerState;
     devices: {
-        [key: string]: Device;
+        [deviceId: string]: Device;
     };
     transfer_data_timestamp: string;
     not_playing_since_timestamp: string;
@@ -36,7 +38,7 @@ export interface PlayerState {
     context_restrictions: Record<string, unknown>;
     play_origin: PlayOrigin;
     index: TrackIndex;
-    track: AlbumTrack;
+    track: WsTrack;
     playback_id: string;
     playback_speed: number;
     position_as_of_timestamp: string;
@@ -47,8 +49,8 @@ export interface PlayerState {
     options: PlaybackOptions;
     restrictions: Restrictions;
     suppressions: Record<string, unknown>;
-    prev_tracks: AlbumTrack[];
-    next_tracks: AlbumTrack[];
+    prev_tracks?: WsTrack[];
+    next_tracks?: WsTrack[];
     context_metadata: ContextMetadata;
     page_metadata: Record<string, unknown>;
     session_id: string;
@@ -68,15 +70,15 @@ export interface TrackIndex {
     track: number;
 }
 
-export interface AlbumTrack {
+export interface WsTrack {
     uri: string;
     uid: string;
-    metadata: Metadata
+    metadata?: Metadata
     provider: string;
 }
 
 export interface Metadata {
-    hidden_in_queue: string
+    hidden_in_queue?: string
     "narration.intro.ssml"?: string
     "media.manifest"?: string;
     station_subtitle?: string
@@ -245,4 +247,28 @@ export interface SongState {
         album: string,
         song: string,
     }
+}
+export interface SpotifyState {
+    player: {
+        playbackId: string;
+        isPaused: boolean;
+        position: number;
+        duration: number;
+        contextUri: string;
+        track: Track;
+        nextTracks?: { track?: TrackSnippet; uid: string; context: string; hidden: boolean; }[];
+        prevTracks?: { track?: TrackSnippet; uid: string; context: string; hidden: boolean; }[];
+        dj?: { transcript: string[]; source: string; subtitle: string; };
+    };
+    devices: {
+        deviceId: string;
+        clientId: string;
+        isActive: boolean;
+        name: string;
+        type: string;
+        brand: string;
+        model: string;
+        volume: number;
+        outputDevice?: { type?: string; name?: string; }
+    }[]
 }

@@ -11,7 +11,7 @@ export function mapCurrentUser(spotify: Spotify, apiUser: APICurrentUser) {
     return new CurrentUser(spotify, {
         uri: apiUser.data.me.profile.uri,
         username: apiUser.data.me.profile.username,
-        name: apiUser.data.me.profile.uri,
+        name: apiUser.data.me.profile.name,
         avatarBackgroundColor: apiUser.data.me.profile.avatarBackgroundColor,
         avatar: apiUser.data.me.profile.avatar.sources,
     })

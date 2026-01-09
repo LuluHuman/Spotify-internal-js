@@ -10,7 +10,7 @@ export function mapSavedAlbum(spotify: Spotify, apiAlbum: APISavedAlbums) {
             name: album.item.data.name,
             uri: album.item.data.uri,
             type: album.item.data.type,
-            artists: album.item.data.artists.items.map(art => new ArtistSnippet(spotify, { uri: art.uri, name: art.profile.name})),
+            artists: album.item.data.artists.items.map(art => new ArtistSnippet(spotify, { uri: art.uri, name: art.profile.name })),
             date: {
                 dateObject: new Date(album.item.data.date.isoString),
                 precision: album.item.data.date.precision
