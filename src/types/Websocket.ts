@@ -20,7 +20,7 @@ export interface Cluster {
     timestamp: string;
     active_device_id: string;
     player_state: PlayerState;
-    devices: {
+    devices?: {
         [deviceId: string]: Device;
     };
     transfer_data_timestamp: string;
@@ -270,5 +270,5 @@ export interface SpotifyState {
         model: string;
         volume: number;
         outputDevice?: { type?: string; name?: string; }
-    }[]
+    }[] | null
 }

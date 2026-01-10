@@ -1,7 +1,7 @@
 import { TrackSnippet } from "../classes";
 import { Cluster, PlayerState, WsTrack } from "../types/Websocket";
-import { Spotify } from "../../Spotify";
-import { SpotifyIdentifier } from "../helpers";
+import { Spotify } from "../../";
+import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
 
 export async function mapCluster(spotify: Spotify, cluster: Cluster) {
     if (!cluster) return
@@ -32,7 +32,7 @@ export async function mapCluster(spotify: Spotify, cluster: Cluster) {
                 subtitle: cluster.player_state.track.metadata?.station_subtitle || ""
             } : undefined
         },
-        devices: Object.values(cluster.devices)
+        devices: cluster.devices ? Object.values(cluster.devices)
             .map(device => ({
                 deviceId: device.device_id,
                 clientId: device.client_id,
@@ -47,7 +47,7 @@ export async function mapCluster(spotify: Spotify, cluster: Cluster) {
                     //known: UNKNOWN_AUDIO_OUTPUT_DEVICE_TYPE, BUILT_IN_SPEAKER
                     name: device.audio_output_device_info?.device_name
                 }
-            }))
+            })) : null
     }
 
     return state

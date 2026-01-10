@@ -1,5 +1,5 @@
-import { Spotify } from "../../Spotify";
-import { SpotifyIdentifier } from "../helpers";
+import { Spotify } from "../../";
+import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
 import { ImageSrc } from "../types/APIGeneric";
 import { Track, TrackSnippet } from "./Track";
 import { User } from "./User";

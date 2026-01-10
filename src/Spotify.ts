@@ -1,29 +1,23 @@
 import axios, { type AxiosRequestConfig } from "axios"
-import { writeFileSync } from "node:fs"
-import path from "node:path"
-import { getToken } from "./lib/secretGenerator"
-import { SpotifyIdentifier } from "./lib/helpers"
+import { getToken } from "./secretGenerator"
+import SpotifyIdentifier from "./helpers/SpotifyIdentifier"
 
-import { Album, AlbumSnippet, CurrentUser, User, Artist, ArtistSnippet, Playlist, Track, TrackSnippet, Operation } from "./lib/classes"
+import { Album, AlbumSnippet, CurrentUser, User, Artist, ArtistSnippet, Playlist, Track, TrackSnippet, Operation } from "./classes"
 import {
-    SpotifyWebhook, APIPlaylistAddItems, APIPlaylistContent, APIPlaylistPermissionChange, APIPlaylistRemoveItems, PlaylistPermission,
+    APIPlaylistAddItems, APIPlaylistContent, APIPlaylistPermissionChange, APIPlaylistRemoveItems, PlaylistPermission,
     APIAlbumsWrapper, AddLibraryItemsResponse, APIChange, RemoveLibraryItemsResponse,
     APIPlaylistChange, APITrack, APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists,
-} from "./lib/types"
+} from "./types"
 import {
     mapSavedAlbum, mapArtist, mapPlaylist,
     mapCheckSaveTracks, mapSavedTracks, mapTrack, mapTracks,
     fileTypeFromBuffer, mapAlbum, mapNewAlbums,
     mapCurrentUser, mapTopArtists, mapTopTracks, mapUser, mapUserFollowers, mapUserFollowing, mapUserPlaylists,
-} from "./lib/mappers"
-import { APIPlaylistDeltaAdd, APIPlaylistDeltaRemove } from "./lib/types/APIPlaylist"
-import { mapTrackCanvas } from "./lib/mappers/trackMapper"
-import { APILyrics } from "./lib/classes/Track"
-import { Cluster, Payload, SpotifyState } from "./lib/types/Websocket"
-import { mapCluster } from "./lib/mappers/websockerClusterMapper"
-
-
-const logs = new Array()
+} from "./mappers"
+import { APIPlaylistDeltaAdd, APIPlaylistDeltaRemove } from "./types/APIPlaylist"
+import { mapTrackCanvas } from "./mappers/trackMapper"
+import { APILyrics } from "./classes/Track"
+import SpotifyPlayer from "./helpers/SpotifyPlayer"
 
 export const host = {
     "pub": "https://api.spotify.com/v1",
@@ -41,15 +35,12 @@ export class Spotify {
         isAnonymous: boolean,
         clientId: string,
         err?: any,
-        localDeviceId: string,
-        activeDeviceId: string
     }
     user?: CurrentUser
     isReady: boolean
     ready: (() => any)[]
     operation: Operation
     ws?: WebSocket
-    eventListeners: { [type: string]: ((state: SpotifyState) => void)[] }
 
     #internal: {
         playlistDeltaBuilder: (newAttributes: {
@@ -112,20 +103,7 @@ export class Spotify {
         //fetchTop
         //fetchRelated
     }
-    player: {
-        data: SpotifyState | null
-        addEventListener: (type: string, callback: (arg?: SpotifyState | undefined) => void) => void,
-        dispatchEvent: (event: { type: string; state: SpotifyState; }) => void,
-        removeEventListener: (type: string, callback: (arg?: SpotifyState | undefined) => void) => void,
-        pause: () => Promise<{ ack_id: string; } | void>
-        resume: () => Promise<{ ack_id: string; } | void>
-        next: () => Promise<{ ack_id: string; } | void>
-        back: () => Promise<{ ack_id: string; } | void>
-        seek: (position: number) => Promise<{ ack_id: string; } | void>
-        //TODO: setRepeat 0 for no repeat .1 for repeat all.2 for repeat one.
-        //TODO: setShuffle
-        setVolume: (position: number) => Promise<{ ack_id: string; } | void>
-    }
+    player?: SpotifyPlayer
     playlists: {
         fetch: (playlistIdentifiers: SpotifyIdentifier, options?: { limit: number; offset: number; } | undefined) => Promise<Playlist>
         update: (playlistIdentifier: SpotifyIdentifier, newAttributes: { name?: string; description?: string; }) => Promise<APIPlaylistChange>
@@ -181,13 +159,10 @@ export class Spotify {
             accessTokenExpirationTimestampMs: 0,
             isAnonymous: false,
             clientId: "",
-            localDeviceId: "",
-            activeDeviceId: ""
         };
         this.ready = []
         this.isReady = false
         this.operation = new Operation(this)
-        this.eventListeners = {}
 
         this.#internal = {
             playlistDeltaBuilder: (newAttributes: {
@@ -272,46 +247,6 @@ export class Spotify {
             },
             checkFollowing: async (artistIdentifiers: SpotifyIdentifier[]) => {
                 return this.operation.areEntitiesInLibrary(artistIdentifiers.map(id => id.uri))
-            }
-        }
-
-        this.player = {
-            data: null,
-            addEventListener: (type: string, callback: (arg?: SpotifyState) => void) => {
-                if (!(type in this.eventListeners)) {
-                    this.eventListeners[type] = [];
-                }
-                this.eventListeners[type].push(callback);
-            },
-            dispatchEvent: (event: { type: string, state: SpotifyState }) => {
-                if (!(event.type in this.eventListeners)) return
-                const stack = this.eventListeners[event.type];
-                for (let i = 0; i < stack.length; i++) {
-                    if (typeof stack[i] === "function") stack[i](event.state);
-                }
-                return
-            },
-            removeEventListener: (type: string, callback: (arg?: SpotifyState) => void) => {
-                if (!(type in this.eventListeners)) return;
-                const stack = this.eventListeners[type];
-                for (let i = 0; i < stack.length; i++) {
-                    if (stack[i] === callback) {
-                        stack.splice(i, 1);
-                        return;
-                    }
-                }
-            },
-            pause: () => this.#playback("pause"),
-            resume: () => this.#playback("resume"),
-            next: () => this.#playback("skip_next"),
-            back: () => this.#playback("skip_prev"),
-            seek: (position: number) => this.#playback("seek_to", position),
-            setVolume: async (position: number) => {
-                const activeDeviceId = this.player.data?.devices.find(device => device.isActive)?.deviceId
-                const thisDeviceId = this.session.localDeviceId
-                if (!thisDeviceId || !activeDeviceId) return
-                const raw = JSON.stringify({ "volume": Math.floor(position * 65535) });
-                return this.request(host.gae + `/connect-state/v1/connect/volume/from/${thisDeviceId}/to/${activeDeviceId}`, { method: "PUT", body: raw }) as Promise<{ ack_id: string; }>
             }
         }
         this.playlists = {
@@ -482,8 +417,6 @@ export class Spotify {
 
             axios.request(config)
                 .then((resApi) => {
-                    logs.push({ req: config, res: { status: resApi.status, data: resApi.data } })
-                    writeFileSync(path.join(__dirname, "log.json"), JSON.stringify(logs))
                     resp(resApi.data)
                 })
                 .catch((err) => {
@@ -499,21 +432,16 @@ export class Spotify {
     login(sp_dc: string) {
         return new Promise((resp) => {
             const init = async (res: any) => {
-                if (res.offline) return alert("Offline");
-                if (res.accessToken == "") return alert("Error No Access Token");
-                console.info("Spotify session generated. Token: ", res.accessToken);
-
-                this.isReady = true
+                if (res.offline) throw new Error("Offline");
+                if (res.accessToken == "") throw new Error("Error No Access Token");
                 this.session = res;
 
                 const me = await this.users.me()
                 this.user = me
-                console.log("Logged in as: " + me.name);
-
-                this.#initWs()
-                this.ready.forEach(f => f());
-                console.info(`fired ${this.ready.length} ready events`)
-
+                this.player = new SpotifyPlayer(this, () => {
+                    this.isReady = true
+                    this.ready.forEach(f => f());
+                })
                 return resp(res);
             }
 
@@ -538,149 +466,5 @@ export class Spotify {
     onReady(func: () => any) {
         if (this.isReady) func()
         this.ready.push(func)
-    }
-
-    async #initWs() {
-        const fn = (state?: SpotifyState) => {
-            this.player.data = state || null
-            if (!state) return
-            if (state.player.playbackId != this.player.data?.player.playbackId) this.player.dispatchEvent({ type: "songchange", state: state })
-            if (state.player.isPaused != this.player.data?.player.isPaused) this.player.dispatchEvent({ type: "onplaypause", state: state })
-        }
-        if (typeof WebSocket == "undefined") throw Error("WebSocket object is undefined")
-        const wsDealer = "dealer.spotify.com";
-        const wsUrl = `wss://${wsDealer}/?access_token=${this.session.accessToken}`;
-        const spWs = new WebSocket(wsUrl);
-        spWs.onmessage = async (event) => {
-            const data = JSON.parse(event.data) as SpotifyWebhook
-            if (!data.headers) return;
-
-            const connectionId = data.headers["Spotify-Connection-Id"];
-            if (!connectionId) return fn(await mapCluster(this, data.payloads[0]?.cluster))
-
-            const devReady = await this.#registerDevice(connectionId)
-            console.log(devReady);
-
-            this.session.localDeviceId = devReady
-            this.#connectWs(connectionId).then(async (state) => {
-                console.info("Successfully connect to websocket");
-                fn(await mapCluster(this, state as Cluster));
-            });
-        };
-    }
-
-    async #registerDevice(connection_id: string) {
-        const devId = [...Array(40)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-        const req = await this.request("https://gae2-spclient.spotify.com/track-playback/v1/devices", {
-            method: "POST",
-            body: JSON.stringify({
-                "device": {
-                    "brand": "spotify",
-                    "capabilities": {
-                        "change_volume": false,
-                        "enable_play_token": false,
-                        "supports_file_media_type": false,
-                        "play_token_lost_behavior": "pause",
-                        "disable_connect": true,
-                        "audio_podcasts": false,
-                        "video_playback": false,
-                        "manifest_formats": [],
-                        "supports_preferred_media_type": false,
-                        "supports_playback_offsets": false,
-                        "supports_playback_speed": false,
-                    },
-                    "device_id": devId,
-                    "device_type": "computer",
-                    "metadata": {},
-                    "model": "web_player",
-                    "name": "Lulu.js",
-                    "platform_identifier": "web_player linux undefined;firefox 140.0;desktop",
-                    "is_group": false
-                },
-                "outro_endcontent_snooping": false,
-                "connection_id": connection_id,
-                "client_version": "harmony:4.62.4-06fd55545",
-                "volume": 0
-            })
-        }) as {
-            initial_seq_num: number,
-            device_keep_alive_update_seconds: number,
-            endsongs: null,
-            file_format_filter: number,
-            supports_observing: boolean,
-            effective_license: "premium" | "free",
-        }
-        if (req.supports_observing) return devId
-        return ""
-    }
-
-    async #connectWs(connection_id: string) {
-        function randomID() {
-            const digits = function (length: number) {
-                const bytes = crypto.getRandomValues(new Uint8Array(length));
-                let str = "";
-                for (let i = 0; i < bytes.length; i++) { str += bytes[i]?.toString(16) }
-                return str;
-            };
-            return (digits(4) + "-" + digits(2) + "-" + digits(2) + "-" + digits(2) + "-" + digits(6));
-        }
-
-        const deviceID = randomID();
-
-        const accessToken = this.session.accessToken
-        const headersList = {
-            "x-spotify-connection-id": connection_id,
-            authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-        };
-
-        const bodyContent = JSON.stringify({
-            member_type: "CONNECT_STATE",
-            device: { device_info: { capabilities: { can_be_player: false, hidden: true, needs_full_player_state: true } } },
-        });
-
-        const reqOptions: AxiosRequestConfig = {
-            url: `${host.internal}/connect-state/v1/devices/hobs_${deviceID}`,
-            method: "PUT",
-            headers: headersList,
-            data: bodyContent,
-        }
-        const request = await axios.request(reqOptions)
-        return request.data;
-    }
-
-    async #playback(mode: "resume" | "pause" | "play" | "skip_next" | "skip_prev" | "shuffle" | "repeat" | "seek_to", value?: string | number) {
-        const raw = JSON.stringify({
-            "command": {
-                "logging_params": {
-                    "page_instance_ids": [],
-                    "interaction_ids": [],
-                    "command_id": "1e7f04122f19e1674d823e689d0d1e95"
-                },
-                "endpoint": mode,
-                value,
-            }
-        });
-
-        const activeDeviceId = this.player.data?.devices.find(device => device.isActive)?.deviceId
-        const thisDeviceId = this.session.localDeviceId
-        if (!thisDeviceId || !activeDeviceId) return
-
-        const url = `${host.gae}/connect-state/v1/player/command/from/${thisDeviceId}/to/${activeDeviceId}`
-        return this.request(url, { method: "POST", body: raw, }) as Promise<{ ack_id: string }>
-    }
-    async addToQueue({ active_device_id, trackId }: { active_device_id?: string, trackId: string }) {
-        const raw = JSON.stringify({
-            "command": {
-                "endpoint": "add_to_queue",
-                "track": {
-                    "uri": "spotify:track:" + trackId,
-                    "metadata": { "is_queued": "true" },
-                    "provider": "queue"
-                },
-                "logging_params": { "command_id": "b5030d49025b1d12b646812a44951a09" }
-            }
-        });
-        return this.request(host.gae + `/connect-state/v1/player/command/from/0/to/${active_device_id}`, { method: "POST", body: raw });
     }
 };

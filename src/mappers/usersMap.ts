@@ -1,11 +1,11 @@
 import { url } from "node:inspector";
-import { Spotify } from "../../Spotify";
-import { Artist, ArtistSnippet } from "../classes/Artist";
+import { Spotify } from "../../";
+import { ArtistSnippet } from "../classes/Artist";
 import { TrackSnippet } from "../classes/Track";
 import { CurrentUser, User } from "../classes/User";
 import { APICurrentUser, APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists, APIUserTop } from "../types/APIUsers";
 import { Playlist } from "../classes/Playlist";
-import { SpotifyIdentifier } from "../helpers";
+import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
 
 export function mapCurrentUser(spotify: Spotify, apiUser: APICurrentUser) {
     return new CurrentUser(spotify, {

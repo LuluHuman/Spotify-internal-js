@@ -1,9 +1,8 @@
-
-import { Spotify } from "../../Spotify";
+import { Spotify } from "../../";
 import { AlbumSnippet } from "../classes/Album";
 import { ArtistSnippet } from "../classes/Artist";
 import { APICanvas, Track, TrackSnippet } from "../classes/Track";
-import { gidToId } from "../helpers";
+import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
 import { APICheckSavedTracks, APISavedTracks, APITrack, APITracks } from "../types/APITrack";
 
 export function mapTrack(spotify: Spotify, apiTrack: APITrack) {
@@ -16,7 +15,7 @@ export function mapTrack(spotify: Spotify, apiTrack: APITrack) {
     return new Track(spotify, {
         uri: apiTrack.canonical_uri,
         name: apiTrack.name,
-        artists: apiTrack.artist.map(artist => new ArtistSnippet(spotify, { name: artist.name, uri: "spotify:artist:" + gidToId(artist.gid) })),
+        artists: apiTrack.artist.map(artist => new ArtistSnippet(spotify, { name: artist.name, uri: new SpotifyIdentifier(artist.gid, "artist").uri })),
         trackNumber: apiTrack.number,
         discNumber: apiTrack.disc_number,
         duration: apiTrack.duration,
@@ -26,9 +25,9 @@ export function mapTrack(spotify: Spotify, apiTrack: APITrack) {
         original_title: apiTrack.original_title,
         album: new AlbumSnippet(spotify, {
             name: apiTrack.album.name,
-            uri: "spotify:album:" + gidToId(apiTrack.album.gid),
+            uri: new SpotifyIdentifier(apiTrack.album.gid, "album").uri,
             type: "ALBUM",
-            artists: apiTrack.album.artist.map(artist => new ArtistSnippet(spotify, { name: artist.name, uri: "spotify:artist:" + gidToId(artist.gid) })),
+            artists: apiTrack.album.artist.map(artist => new ArtistSnippet(spotify, { name: artist.name, uri: new SpotifyIdentifier(artist.gid, "artist").uri })),
             date: {
                 dateObject: new Date(mapDate(apiTrack.album.date)),
                 precision: "DAY"

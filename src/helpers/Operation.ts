@@ -1,4 +1,4 @@
-import { host, Spotify } from "../../Spotify";
+import { host, Spotify } from "../../src/Spotify";
 import { APIAlbum, APIError, APISavedAlbums, APIWhatsNewFeedItems } from "../types/APIAlbum";
 import * as operatonHashes from "../operationHashes.json"
 import { APICurrentUser, APIUserTop } from "../types/APIUsers";
@@ -6,7 +6,7 @@ import { AddLibraryItemsResponse, APILookupResponse, RemoveLibraryItemsResponse 
 import { APIArtist } from "../types/APIArtist";
 import { APIPlaylist, APIPlaylistAddItems, APIPlaylistError, type APIPlaylistContent, type APIPlaylistRemoveItems } from "../types/APIPlaylist";
 import { APICheckSavedTracks, APISavedTracks, APITracks } from "../types/APITrack";
-import { APICanvas } from "./Track";
+import { APICanvas } from "../classes/Track";
 
 export class Operation {
     spotify: Spotify

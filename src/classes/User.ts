@@ -1,4 +1,4 @@
-import { host, Spotify } from "../../Spotify";
+import { host, Spotify } from "../../src/Spotify";
 import { ImageSrc } from "../types/APIGeneric";
 
 export class User {

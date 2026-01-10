@@ -1,5 +1,5 @@
-import { Spotify } from "../../Spotify";
-import { Artist, ArtistSnippet } from "../classes/Artist";
+import { Spotify } from "../../";
+import { ArtistSnippet } from "../classes/Artist";
 import { Playlist } from "../classes/Playlist";
 import { TrackSnippet } from "../classes/Track";
 import { User } from "../classes/User";

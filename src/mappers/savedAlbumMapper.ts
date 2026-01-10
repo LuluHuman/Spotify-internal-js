@@ -1,4 +1,4 @@
-import { Spotify } from "../../Spotify";
+import { Spotify } from "../../";
 import { AlbumSnippet } from "../classes/Album";
 import { ArtistSnippet } from "../classes/Artist";
 import { APISavedAlbums } from "../types/APIAlbum";

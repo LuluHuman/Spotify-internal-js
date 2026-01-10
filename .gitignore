@@ -36,3 +36,4 @@ log*.json
 
 index.html
 ws.ts
+bun.lock

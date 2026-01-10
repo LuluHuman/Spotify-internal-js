@@ -1,8 +1,8 @@
-import { Spotify } from "../../Spotify";
+import { Spotify } from "../../";
 import { AlbumSnippet } from "./Album";
 import { ArtistSnippet } from "./Artist";
 import { ImageSrc } from "../types/APIGeneric";
-import { SpotifyIdentifier } from "../helpers";
+import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
 
 
 export class BaseTrack {

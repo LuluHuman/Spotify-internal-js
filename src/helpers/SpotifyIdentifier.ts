@@ -1,53 +1,4 @@
-export function idToGid(id: string) {
-    const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    let val = BigInt("0");
-    for (let i = 0; i < id.length; i++) {
-        const digit = alphabet.indexOf(id.charAt(i));
-        val = val * BigInt("62") + BigInt(digit);
-    }
-    const gid = val.toString(16).padStart(32, "0");
-    return gid
-}
-export function gidToId(gid: string) {
-    const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let val = BigInt("0x" + gid); // parse hex string into BigInt
-    let trackId = "";
-
-    if (val === 0n) return alphabet[0];
-
-    while (val > 0n) {
-        const remainder = val % 62n;
-        trackId = alphabet[Number(remainder)] + trackId;
-        val = val / 62n;
-    }
-
-    return trackId;
-}
-
-export const URIto = {
-    id: (uri: string) => {
-        return uri.split(":")[2];
-    },
-    url: (uri: string) => {
-        const uriParams = uri.split(":");
-        const type = uriParams[1];
-        switch (type) {
-            case "image":
-                return "https://i.scdn.co/image/" + uriParams[2];
-            case "artist":
-                return "https://api.spotify.com/v1/artists/" + uriParams[2];
-            case "album":
-                return "https://api.spotify.com/v1/albums/" + uriParams[2];
-            case "track":
-                return "https://api.spotify.com/v1/tracks/" + uriParams[2];
-            case "playlist":
-                return `https://api.spotify.com/v1/playlists/${uriParams[2]}?.fields=name%2C+images`;
-        }
-    },
-};
-
-export class SpotifyIdentifier {
+export default class SpotifyIdentifier {
     type: string // image
     id: string
     constructor(identifier: string, type?: "track" | "album" | "artist" | "playlist" | "user" | "image" | "mosaic") {
@@ -86,8 +37,23 @@ export class SpotifyIdentifier {
         const isGid = gidRegex.exec(identifier) != null
         if (isGid) {
             if (!type) throw new Error(`Id ${identifier} needs a type`)
-            this.id = gidToId(identifier)
             this.type = type
+
+            const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            let val = BigInt("0x" + identifier); // parse hex string into BigInt
+            if (val === 0n) {
+                this.id = alphabet[0];
+                return this
+            }
+            let trackId = "";
+
+            while (val > 0n) {
+                const remainder = val % 62n;
+                trackId = alphabet[Number(remainder)] + trackId;
+                val = val / 62n;
+            }
+
+            this.id = trackId
             return this
         }
 

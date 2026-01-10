@@ -1,9 +1,9 @@
 import { ImageSrc } from "../types/APIGeneric"
-import { Spotify } from "../../Spotify"
+import { Spotify } from "../../"
 import { ArtistSnippet } from "./Artist"
 import { TrackSnippet } from "./Track"
 import { albumType } from "../types/APIAlbum"
-import { SpotifyIdentifier } from "../helpers"
+import SpotifyIdentifier from "../helpers/SpotifyIdentifier"
 
 export class BaseAlbum {
     spotify: Spotify
@@ -49,11 +49,11 @@ export class BaseAlbum {
 
 
     save() {
-        return this.spotify.albums.addToLibrary([this.uri])
+        return this.spotify.albums.addToLibrary([new SpotifyIdentifier(this.uri)])
     }
 
     unsave() {
-        return this.spotify.albums.removeFromLibrary([this.uri])
+        return this.spotify.albums.removeFromLibrary([new SpotifyIdentifier(this.uri)])
     }
 }
 

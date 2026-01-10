@@ -1,10 +1,9 @@
 import { APIAlbumTrack, APIWhatsNewFeedItems } from "../types/APIAlbum";
-import { Spotify } from "../../Spotify";
+import { Spotify } from "../../";
 import { Album, AlbumSnippet } from "../classes/Album";
 import { ArtistSnippet } from "../classes/Artist";
 import { TrackSnippet } from "../classes/Track";
 import { APIAlbum } from "../types/APIAlbum";
-import { APILookupResponse } from "../types/APIGeneric";
 
 function mapTracks(spotify: Spotify, track: APIAlbumTrack) {
     return new TrackSnippet(spotify, {

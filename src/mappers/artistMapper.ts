@@ -1,6 +1,6 @@
 import { AlbumSnippet } from "../classes/Album";
 import { Artist, ArtistSnippet } from "../classes/Artist";
-import { Spotify } from "../../Spotify";
+import { Spotify } from "../../";
 import { AlbumArtistUnion, APIArtist } from "../types/APIArtist";
 
 export function mapArtist(spotify: Spotify, apiAlbum: APIArtist) {
