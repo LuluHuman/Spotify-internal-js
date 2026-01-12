@@ -4,26 +4,43 @@ import { ImageSrc } from "../types/APIGeneric"
 import { AlbumSnippet } from "./Album"
 
 export class BaseArtist {
+    following?: boolean
     spotify: Spotify
     uri: string
     name: string
     images?: ImageSrc[]
 
     constructor(spotify: Spotify,
-        { uri, name, images }: {
+        { following: saved, uri, name, images }: {
+            following?: boolean
             uri: string
             name: string
             images?: ImageSrc[]
         }
     ) {
+        this.following = saved
         this.spotify = spotify
         this.uri = uri
         this.name = name
         this.images = images
     }
 
-    toJSON() {
+    async checkFollowing() {
+        if (this.following) return this.following
+        const isSavedRes = await this.spotify.artists.checkFollowing([new SpotifyIdentifier(this.uri)])
+        return isSavedRes[0] || false
+    }
+    async follow() {
+        return this.spotify.artists.follow([new SpotifyIdentifier(this.uri)])
+    }
+    async unfollow() {
+        return this.spotify.artists.unfollow([new SpotifyIdentifier(this.uri)])
+    }
+
+    async toJSON() {
+        const following = await this.checkFollowing()
         return {
+            following,
             uri: this.uri,
             name: this.name,
             images: this.images
@@ -37,7 +54,6 @@ export class ArtistSnippet extends BaseArtist {
 
 
 export class Artist extends BaseArtist {
-    saved: boolean
     imageHeader: ImageSrc[]
     imageAvatar: ImageSrc[]
     externalLinks: { "name": string, "url": string }[]
@@ -65,7 +81,7 @@ export class Artist extends BaseArtist {
         uri: string,
         name: string,
         images: ImageSrc[],
-        saved: boolean,
+        following: boolean,
         imageHeader: ImageSrc[],
         imageAvatar: ImageSrc[],
         externalLinks: { "name": string, "url": string }[],
@@ -90,7 +106,6 @@ export class Artist extends BaseArtist {
         }
     }) {
         super(spotify, artist)
-        this.saved = artist.saved
         this.images = artist.images
         this.imageHeader = artist.imageHeader
         this.imageAvatar = artist.imageAvatar
@@ -100,14 +115,13 @@ export class Artist extends BaseArtist {
         this.discography = artist.discography
     }
 
-
-
-    toJSON() {
+    async toJSON() {
+        const following = await this.checkFollowing()
         return {
             uri: this.uri,
             name: this.name,
             images: this.images,
-            saved: this.saved,
+            following,
             imageHeader: this.imageHeader,
             imageAvatar: this.imageAvatar,
             externalLinks: this.externalLinks,

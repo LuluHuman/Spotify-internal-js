@@ -37,7 +37,7 @@ export function mapArtist(spotify: Spotify, apiAlbum: APIArtist) {
         uri: apiAlbum.data.artistUnion.uri,
         name: apiAlbum.data.artistUnion.profile.name,
         images: apiAlbum.data.artistUnion.visuals.gallery.items,
-        saved: apiAlbum.data.artistUnion.saved,
+        following: apiAlbum.data.artistUnion.saved,
         imageHeader: apiAlbum.data.artistUnion.headerImage?.data.sources.map(im => ({ height: im.maxHeight, url: im.url, width: im.maxWidth })) || [],
         imageAvatar: apiAlbum.data.artistUnion.visuals.avatarImage.sources,
         externalLinks: apiAlbum.data.artistUnion.profile.externalLinks.items,

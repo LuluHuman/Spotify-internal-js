@@ -44,14 +44,16 @@ export class BaseTrack {
         }
     }
 
-    async isSaved() {
+    async checkSaved() {
         if (this.#saved) return this.#saved
-        const res = await this.spotify.tracks.checkSaved([new SpotifyIdentifier(this.uri)]) as boolean[]
+        const res = await this.spotify.tracks.checkSaved([new SpotifyIdentifier(this.uri)])
         return res[0]
     }
 
     async addToLibrary() { return this.spotify.tracks.addToLibrary([new SpotifyIdentifier(this.uri)]) }
     async removeFromLibrary() { return this.spotify.tracks.removeFromLibrary([new SpotifyIdentifier(this.uri)]) }
+    async fetchCanvasUrl() { return this.spotify.tracks.fetchCanvasURL(new SpotifyIdentifier(this.uri)) }
+    async fetchLyrics() { return this.spotify.tracks.fetchLyrics(new SpotifyIdentifier(this.uri)) }
 }
 
 export class Track extends BaseTrack {

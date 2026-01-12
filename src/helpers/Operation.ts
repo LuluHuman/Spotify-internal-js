@@ -120,11 +120,11 @@ export class Operation {
         return playlist as APIPlaylist
     }
 
-    async fetchPlaylistContents(uris: string[], options?: { offset: number, limit: number }) {
+    async fetchPlaylistContents(uri: string, options?: { offset: number, limit: number }) {
         const playlist = await this.#request("fetchPlaylistContents", {
             "limit": options?.limit || 25,
             "offset": options?.offset || 0,
-            "uri": uris
+            "uri": uri
         }) as APIPlaylistContent | APIPlaylistError
 
         if (playlist.data.playlistV2.__typename == "GenericError") {

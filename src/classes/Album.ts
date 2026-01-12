@@ -6,8 +6,8 @@ import { albumType } from "../types/APIAlbum"
 import SpotifyIdentifier from "../helpers/SpotifyIdentifier"
 
 export class BaseAlbum {
+    #saved?: boolean
     spotify: Spotify
-    saved?: boolean
     name: string
     uri: string
     type: albumType
@@ -28,7 +28,7 @@ export class BaseAlbum {
         }
     }) {
         this.spotify = spotify
-        this.saved = album?.saved
+        this.#saved = album?.saved
         this.name = album?.name
         this.uri = album?.uri
         this.type = album.type
@@ -36,9 +36,10 @@ export class BaseAlbum {
         this.date = album.date
     }
 
-    toJSON() {
+    async toJSON() {
+        const saved = await this.checkSaved()
         return {
-            saved: this.saved,
+            saved,
             name: this.name,
             uri: this.uri,
             type: this.type,
@@ -47,12 +48,17 @@ export class BaseAlbum {
         }
     }
 
+    async checkSaved() {
+        if (this.#saved) return this.#saved
+        const isSavedRes = await this.spotify.albums.checkSaved([new SpotifyIdentifier(this.uri)])
+        return isSavedRes[0] || false
+    }
 
-    save() {
+    addToLibrary() {
         return this.spotify.albums.addToLibrary([new SpotifyIdentifier(this.uri)])
     }
 
-    unsave() {
+    removeFromLibrary() {
         return this.spotify.albums.removeFromLibrary([new SpotifyIdentifier(this.uri)])
     }
 }
@@ -68,7 +74,7 @@ export class Album extends BaseAlbum {
     tracks: TrackSnippet[]
 
     constructor(spotify: Spotify, album: {
-        saved: boolean
+        saved?: boolean
         name: string
         uri: string
         type: albumType
@@ -89,9 +95,10 @@ export class Album extends BaseAlbum {
         this.tracks = album.tracks
     }
 
-    toJSON() {
+    async toJSON() {
+        const saved = await this.checkSaved()
         return {
-            saved: this.saved,
+            saved,
             name: this.name,
             uri: this.uri,
             type: this.type,

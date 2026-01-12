@@ -99,8 +99,8 @@ export class Spotify {
         unfollow: (artistIdentifiers: SpotifyIdentifier[]) => Promise<RemoveLibraryItemsResponse>
         checkFollowing: (artistIdentifiers: SpotifyIdentifier[]) => Promise<(boolean | "GenericError")[]>
         //fetchMany
-        //fetchAlbums
-        //fetchTop
+        //fetchAlbums artists.discography
+        //fetchTop artists.discography.popularReleasesAlbums
         //fetchRelated
     }
     player?: SpotifyPlayer
@@ -110,7 +110,7 @@ export class Spotify {
         setVisability: (playlistIdentifier: SpotifyIdentifier, isPublic: boolean) => Promise<APIPlaylistPermissionChange>
         setCover: (playlistIdentifier: SpotifyIdentifier, image: Buffer) => Promise<APIPlaylistChange>
         removeCover: (playlistIdentifier: SpotifyIdentifier) => Promise<APIPlaylistChange>
-        fetchItems: (playlistIdentifiers: SpotifyIdentifier[], options?: { offset: number, limit: number }) => Promise<APIPlaylistContent["data"]["playlistV2"]["content"]>
+        fetchItems: (playlistIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => Promise<APIPlaylistContent["data"]["playlistV2"]["content"]>
         addItems: (playlistIdentifier: SpotifyIdentifier, tracksPos: { tracksUris: string[]; moveType?: "AFTER_UID" | "BOTTOM_OF_PLAYLIST" | undefined; fromUid?: string | undefined; }) => Promise<APIPlaylistAddItems>
         removeItems: (playlistIdentifier: SpotifyIdentifier, trackUIds: string[]) => Promise<APIPlaylistRemoveItems>
         fetchOwned: (options?: { offset: number, limit: number }) => Promise<APIAlbumsWrapper[]>
@@ -134,11 +134,11 @@ export class Spotify {
     }
     users: {
         me: () => Promise<CurrentUser>
-        topArtists: ({ options, timeRange }: {
+        fetchTopArtists: ({ options, timeRange }: {
             timeRange: "SHORT_TERM" | "MID_TERM" | "LONG_TERM";
             options?: { offset?: number; limit?: number; }
         }) => Promise<{ totalCount: number; items: ArtistSnippet[]; }>
-        topTracks: ({ options, timeRange }: {
+        fetchTopTracks: ({ options, timeRange }: {
             timeRange: "SHORT_TERM" | "MID_TERM" | "LONG_TERM";
             options?: { offset?: number; limit?: number; }
         }) => Promise<{ totalCount: number; items: TrackSnippet[]; }>
@@ -258,8 +258,8 @@ export class Spotify {
                 const req = await this.operation.libraryV3({ filters: ["Playlists"], limit: options?.limit, offset: options?.offset })
                 return req.data.me.libraryV3.items
             },
-            fetchItems: async (playlistIdentifiers: SpotifyIdentifier[], options?: { offset: number, limit: number }) => {
-                const playlist = await this.operation.fetchPlaylistContents(playlistIdentifiers.map(id => id.uri), options)
+            fetchItems: async (playlistIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => {
+                const playlist = await this.operation.fetchPlaylistContents(playlistIdentifier.uri, options)
                 return playlist
             },
             update: async (playlistIdentifier: SpotifyIdentifier, newAttributes: { name?: string, description?: string }) => {
@@ -347,14 +347,14 @@ export class Spotify {
                 const user = await this.operation.profileAttributes()
                 return mapCurrentUser(this, user)
             },
-            topArtists: async ({ options, timeRange }: {
+            fetchTopArtists: async ({ options, timeRange }: {
                 timeRange: "SHORT_TERM" | "MID_TERM" | "LONG_TERM"
                 options?: { offset?: number, limit?: number }
             }) => {
                 const topRes = await this.operation.userTopContent({ isArtist: true, timeRange, options })
                 return mapTopArtists(this, topRes)
             },
-            topTracks: async ({ options, timeRange }: {
+            fetchTopTracks: async ({ options, timeRange }: {
                 timeRange: "SHORT_TERM" | "MID_TERM" | "LONG_TERM"
                 options?: { offset?: number, limit?: number }
             }) => {
