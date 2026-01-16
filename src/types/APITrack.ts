@@ -1,4 +1,4 @@
-import { ImageSrc } from "./APIGeneric"
+import { ImageSrc, Playability } from "./APIGeneric"
 
 export type ContentRating = "EXPLICIT" | "NONE"
 export interface APITrack {
@@ -100,7 +100,7 @@ export interface APISavedTracks {
                                     "duration": { "totalMilliseconds": number },
                                     "mediaType": "AUDIO",
                                     "name": string,
-                                    "playability": { "playable": boolean },
+                                    "playability": Playability
                                     "trackNumber": number
                                 }
                             }

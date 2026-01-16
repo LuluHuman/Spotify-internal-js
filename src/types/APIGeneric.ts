@@ -13,7 +13,7 @@ export interface ColorPalette {
     textBrightAccent: ColorValue
     textSubdued: ColorValue
 }
-
+export interface Playability { "playable": boolean, "reason": string }
 export interface AddLibraryItemsResponse { "data": { "addLibraryItems": { "__typename": "AddLibraryItemsResponse" } } }
 export interface RemoveLibraryItemsResponse { "data": { "removeLibraryItems": { "__typename": "RemoveLibraryItemsResponse" } } }
 export type datePrecision = "DAY" | "MONTH" | "YEAR"

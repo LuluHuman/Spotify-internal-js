@@ -1,3 +1,6 @@
+//"spotify:show:0fWkw4bRhLPRx8IXIYTqK8"
+//"spotify:episode:5iUv13ieKyFzTSUbmjGva2"
+//"spotify:genre:0JQ5IMCbQBLuO1Gi4ftdNy"
 export default class SpotifyIdentifier {
     type: string // image
     id: string

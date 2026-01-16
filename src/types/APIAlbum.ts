@@ -1,4 +1,4 @@
-import { ColorPalette, ColorValue, datePrecision, ImageSrc } from "./APIGeneric"
+import { ColorPalette, ColorValue, datePrecision, ImageSrc, Playability } from "./APIGeneric"
 
 export type albumType = "EP" | "SINGLE" | "ALBUM" | "COMPILATION"
 export interface APIError {
@@ -57,10 +57,7 @@ export interface APIAlbum {
 
     courtesyLine: string
     isPreRelease: boolean
-    playability: {
-        playable: boolean
-        reason: "PLAYABLE" | "MARKET" | "PRODUCT" | "EXPLICIT"
-    }
+    playability: Playability
     preReleaseEndDateTime: any
     sharingInfo: {
         shareId: string
@@ -111,10 +108,7 @@ export interface APIAlbum {
                         }
                         id: string
                         name: string
-                        playability: {
-                            playable: boolean
-                            reason: string
-                        }
+                        playability: Playability
                         sharingInfo: {
                             shareId: string
                             shareUrl: string
@@ -144,7 +138,7 @@ export interface APIAlbumTrack {
     contentRating: { label: string }
 
     associationsV3: { videoAssociations: { totalCount: number } }
-    playability: { playable: boolean }
+    playability: Playability
     relinkingInformation: any
 }
 export interface APIWhatsNewFeedItems {
@@ -211,10 +205,7 @@ export interface APIAlbumsWrapper {
                 precision: "DAY" | "MONTH" | "YEAR"
             }
             name: string
-            playability: {
-                playable: boolean
-                reason: "PLAYABLE" | "MARKET" | "PRODUCT" | "EXPLICIT"
-            }
+            playability: Playability
             type: "EP" | "SINGLE" | "ALBUM" | "COMPILATION"
             "uri": string
         }

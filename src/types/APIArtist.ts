@@ -1,4 +1,4 @@
-import { ImageSrc } from "./APIGeneric"
+import { ImageSrc, Playability } from "./APIGeneric"
 
 export interface APIArtist {
     "data": {
@@ -250,10 +250,7 @@ export interface AlbumArtistUnion {
     "id": string
     "label": string
     "name": string
-    "playability": {
-        playable: boolean
-        reason: "PLAYABLE" | "MARKET" | "PRODUCT" | "EXPLICIT"
-    },
+    "playability":Playability
     "sharingInfo": { "shareId": string, "shareUrl": string },
     "tracks": { "totalCount": number },
     "type": "EP" | "SINGLE" | "ALBUM" | "COMPILATION",
@@ -277,10 +274,7 @@ export interface TrackArtistUnion {
         "duration": { "totalMilliseconds": number },
         "id": string
         "name": string
-        "playability": {
-            playable: boolean
-            reason: "PLAYABLE" | "MARKET" | "PRODUCT" | "EXPLICIT"
-        },
+        "playability":Playability
         "playcount": string
         "uri": string
     },

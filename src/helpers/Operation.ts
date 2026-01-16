@@ -7,6 +7,7 @@ import { APIArtist } from "../types/APIArtist";
 import { APIPlaylist, APIPlaylistAddItems, APIPlaylistError, type APIPlaylistContent, type APIPlaylistRemoveItems } from "../types/APIPlaylist";
 import { APICheckSavedTracks, APISavedTracks, APITracks } from "../types/APITrack";
 import { APICanvas } from "../classes/Track";
+import { APISearch } from "../types/APISearch";
 
 export class Operation {
     spotify: Spotify
@@ -26,7 +27,6 @@ export class Operation {
         if ((operationReq as APIError)?.errors) { throw Error((operationReq as APIError).errors?.[0].message) }
         return operationReq
     }
-
     async userTopContent(
         {
             isArtist,
@@ -52,7 +52,6 @@ export class Operation {
         }) as APIUserTop
         return topRes
     }
-
     async getAlbum(uri: string, options?: { offset: number, limit: number }) {
         const variables = { uri, "locale": "", "offset": options?.offset || 0, "limit": options?.limit || 50 }
         const req = (await this.#request("getAlbum", variables)) as { data: { albumUnion: APIAlbum }, errors?: APIError["errors"] }
@@ -60,7 +59,6 @@ export class Operation {
         if (req.errors) throw new Error(req.errors.map(err => err.message).join("\n"))
         return req
     }
-
     async getCanvas(uri: string) {
         return this.#request("canvas", { uri }) as Promise<APICanvas>
     }
@@ -84,15 +82,10 @@ export class Operation {
         }) as APISavedAlbums
         return req
     }
-
     async areEntitiesInLibrary(uris: string[]) {
         const req = (await this.#request("areEntitiesInLibrary", { uris })) as APILookupResponse
         return req.data.lookup.map((entry) => entry.data?.saved || false)
     }
-
-    async addToLibrary(libraryItemUris: string[]) { return this.#request("addToLibrary", { libraryItemUris }) as Promise<AddLibraryItemsResponse> }
-    async removeFromLibrary(libraryItemUris: string[]) { return this.#request("removeFromLibrary", { libraryItemUris }) as Promise<RemoveLibraryItemsResponse> }
-
     async queryWhatsNewFeed(includedContentTypes: string[], options?: { limit?: number, offset?: number }) {
         const queryWhatsNewFeed = await this.#request("queryWhatsNewFeed", {
             includedContentTypes,
@@ -103,9 +96,6 @@ export class Operation {
 
         return queryWhatsNewFeed
     }
-
-    async queryArtistOverview(uri: string) { return this.#request("queryArtistOverview", { "locale": "", uri }) as Promise<APIArtist> }
-
     async fetchPlaylist(uri: string, options?: { offset: number, limit: number }) {
         const playlist = await this.#request("fetchPlaylist", {
             "enableWatchFeedEntrypoint": false,
@@ -119,7 +109,6 @@ export class Operation {
         }
         return playlist as APIPlaylist
     }
-
     async fetchPlaylistContents(uri: string, options?: { offset: number, limit: number }) {
         const playlist = await this.#request("fetchPlaylistContents", {
             "limit": options?.limit || 25,
@@ -133,8 +122,6 @@ export class Operation {
 
         return (playlist as unknown as APIPlaylistContent).data.playlistV2.content
     }
-
-
     async addToPlaylist(playlistUri: string, { tracksUris, moveType, fromUid }: { tracksUris: string[], moveType?: "AFTER_UID" | "BOTTOM_OF_PLAYLIST", fromUid?: string }) {
         return this.#request("addToPlaylist", {
             "newPosition": {
@@ -145,7 +132,33 @@ export class Operation {
             "playlistUri": playlistUri
         }) as Promise<APIPlaylistAddItems>
     }
+    async search(
+        searchType: "desktop" | "playlists" | "tracks" | "podcasts" | "genres" | "artists" | "albums" | "users",
+        q: string,
+        options?: { offset?: number, limit?: number, numberOfTopResults?: number }) {
+        const queryName = {
+            desktop: "searchDesktop",
+            playlists: "searchPlaylists",
+            tracks: "searchTracks",
+            podcasts: "searchPodcasts",
+            genres: "searchGenres",
+            artists: "searchArtists",
+            albums: "searchAlbums",
+            users: "searchUsers"
+        }[searchType]
 
+        return this.#request(queryName as keyof typeof operatonHashes, {
+            "searchTerm": q,
+            "limit": options?.limit || 10,
+            "offset": options?.offset || 0,
+            "numberOfTopResults": options?.numberOfTopResults || 5,
+            "includeAudiobooks": true
+        }) as Promise<APISearch>
+    }
+
+    async addToLibrary(libraryItemUris: string[]) { return this.#request("addToLibrary", { libraryItemUris }) as Promise<AddLibraryItemsResponse> }
+    async removeFromLibrary(libraryItemUris: string[]) { return this.#request("removeFromLibrary", { libraryItemUris }) as Promise<RemoveLibraryItemsResponse> }
+    async queryArtistOverview(uri: string) { return this.#request("queryArtistOverview", { "locale": "", uri }) as Promise<APIArtist> }
     async removeFromPlaylist(playlistUri: string, uids: string[]) { return this.#request("removeFromPlaylist", { playlistUri, uids }) as Promise<APIPlaylistRemoveItems> }
     async decorateContextTracks(uris: string[]) { return this.#request("decorateContextTracks", { uris }) as Promise<APITracks> }
     async fetchLibraryTracks(option?: { limit: number, offset: number }) { return this.#request("fetchLibraryTracks", { limit: option?.limit || 25, offset: option?.offset || 0 }) as Promise<APISavedTracks> }

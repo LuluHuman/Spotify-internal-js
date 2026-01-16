@@ -1,4 +1,4 @@
-import { APIChange, ColorPalette, ColorValue, ImageSrc } from "./APIGeneric"
+import { APIChange, ColorPalette, ColorValue, ImageSrc, Playability } from "./APIGeneric"
 
 
 export type PlaylistPermission = "CONTRIBUTOR" | "VIEWER" | "BLOCKED"
@@ -103,7 +103,7 @@ interface APIPlaylistTrackResponseWrapper {
         "trackDuration": { "totalMilliseconds": number },
         "mediaType": string//"AUDIO",
         "name": string,
-        "playability": { playable: boolean, reason: "PLAYABLE" | "MARKET" | "PRODUCT" | "T" }
+        "playability":Playability
         "playcount": string,
         "trackNumber": number,
         "uri": string

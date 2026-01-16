@@ -389,6 +389,19 @@ export class Spotify {
         }
     }
 
+    async search(query: string, options?: {
+        type?: "playlists" | "tracks" | "podcasts" | "genres" | "artists" | "albums" | "users"
+        limit?: number, offset?: number, numberOfTop?: number
+    }) {
+        const req = await this.operation.search(options?.type || "desktop", query, {
+            limit: options?.limit,
+            offset: options?.offset,
+            numberOfTopResults: options?.numberOfTop
+        })
+
+        return req
+    }
+
     request(url: string, options?: {
         method?: AxiosRequestConfig["method"];
         withProxy?: boolean,
