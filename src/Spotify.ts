@@ -18,6 +18,7 @@ import { APIPlaylistDeltaAdd, APIPlaylistDeltaRemove } from "./types/APIPlaylist
 import { mapTrackCanvas } from "./mappers/trackMapper"
 import { APILyrics } from "./classes/Track"
 import SpotifyPlayer from "./helpers/SpotifyPlayer"
+import { mapSearchByType } from "./mappers/searchMapper"
 
 export const host = {
     "pub": "https://api.spotify.com/v1",
@@ -40,7 +41,6 @@ export class Spotify {
     isReady: boolean
     ready: (() => any)[]
     operation: Operation
-    ws?: WebSocket
 
     #internal: {
         playlistDeltaBuilder: (newAttributes: {
@@ -74,7 +74,6 @@ export class Spotify {
         changeFollowingPlaylist: ({ following, playlistUris }: { following: boolean, playlistUris: string[] }) => Promise<APIChange>
 
     }
-
     albums: {
         fetch: (albumIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => Promise<Album>
         //fetchMany
@@ -103,6 +102,8 @@ export class Spotify {
         //fetchTop artists.discography.popularReleasesAlbums
         //fetchRelated
     }
+    //TODO categoties
+    //TODO episodes
     player?: SpotifyPlayer
     playlists: {
         fetch: (playlistIdentifiers: SpotifyIdentifier, options?: { limit: number; offset: number; } | undefined) => Promise<Playlist>
@@ -118,6 +119,8 @@ export class Spotify {
         followMany: (playlistIdentifiers: SpotifyIdentifier[]) => Promise<APIChange>
         unfollowMany: (playlistIdentifiers: SpotifyIdentifier[]) => Promise<APIChange>
     }
+    //TODO search
+    //TODO shows
     tracks: {
         fetch: (trackIdentifier: SpotifyIdentifier) => Promise<Track>
         fetchMany: (trackIdentifiers: SpotifyIdentifier[]) => Promise<TrackSnippet[]>
@@ -389,11 +392,24 @@ export class Spotify {
         }
     }
 
-    async search(query: string, options?: {
-        type?: "playlists" | "tracks" | "podcasts" | "genres" | "artists" | "albums" | "users"
-        limit?: number, offset?: number, numberOfTop?: number
-    }) {
-        const req = await this.operation.search(options?.type || "desktop", query, {
+    async searchByType(
+        type: "playlists" | "tracks" | /* "podcasts" | */ "genres" | "artists" | "albums" | "users",
+        query: string,
+        options?: { limit?: number, offset?: number }
+    ) {
+        const req = await this.operation.search(type, query, {
+            limit: options?.limit,
+            offset: options?.offset,
+        })
+
+        return mapSearchByType(this, req, type)
+    }
+
+    async searchAll(
+        query: string,
+        options: { limit?: number, offset?: number, numberOfTop?: number }
+    ) {
+        const req = await this.operation.search("desktop", query, {
             limit: options?.limit,
             offset: options?.offset,
             numberOfTopResults: options?.numberOfTop

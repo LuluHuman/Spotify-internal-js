@@ -86,7 +86,7 @@ interface APIArtistSearch {
             }
         }
     ],
-    "totalCount": 801
+    "totalCount": number
 }
 
 interface APISearchEpisodes {
@@ -148,7 +148,7 @@ interface APISearchEpisodes {
             }
         }
     ],
-    "totalCount": 393
+    "totalCount": number
 }
 
 interface APISearchGenres {

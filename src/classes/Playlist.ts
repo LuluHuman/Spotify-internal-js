@@ -6,26 +6,26 @@ import { User } from "./User";
 
 export class Playlist {
     spotify: Spotify
-    following: boolean
+    #following?: boolean
     uri: string
     name: string
     description: string
     owner: User
-    members: { user: User, "isOwner": boolean, "permissionLevel": "CONTRIBUTOR" | "VIEWER" }[]
+    members?: { user: User, "isOwner": boolean, "permissionLevel": "CONTRIBUTOR" | "VIEWER" }[]
     images: ImageSrc[]
     constructor(spotify: Spotify, playlist: {
-        following: boolean
+        following?: boolean
         uri: string
         name: string
         description: string
         owner: User
-        members: { user: User, "isOwner": boolean, "permissionLevel": "CONTRIBUTOR" | "VIEWER" }[]
+        members?: { user: User, "isOwner": boolean, "permissionLevel": "CONTRIBUTOR" | "VIEWER" }[]
         images: ImageSrc[]
         content?: { [key: number]: { track?: TrackSnippet, uid: string, addedAt: Date } }
 
     }) {
         this.spotify = spotify
-        this.following = playlist.following
+        this.#following = playlist.following
         this.uri = playlist.uri
         this.name = playlist.name
         this.description = playlist.description
@@ -63,7 +63,7 @@ export class Playlist {
     async addItems(addArgs: { tracksUris: string[], moveType?: "AFTER_UID" | "BOTTOM_OF_PLAYLIST", fromUid?: string }) {
         const hasUser = this.spotify.user && typeof this.spotify.user.uri != "undefined"
         if (!hasUser) throw new Error("You are not logged in")
-        const isContributor = this.members
+        const isContributor = (this.members || [])
             .filter(mem => mem.permissionLevel == "CONTRIBUTOR")
             .map(mem => mem.user.uri)
             .includes(this.spotify.user?.uri || "")
@@ -75,7 +75,7 @@ export class Playlist {
     async removeItems(trackUIds: string[]) {
         const hasUser = this.spotify.user && typeof this.spotify.user.uri != "undefined"
         if (!hasUser) throw new Error("You are not logged in")
-        const isContributor = this.members
+        const isContributor = (this.members || [])
             .filter(mem => mem.permissionLevel == "CONTRIBUTOR")
             .map(mem => mem.user.uri)
             .includes(this.spotify.user?.uri || "")
@@ -91,12 +91,13 @@ export class Playlist {
 
     toJSON() {
         return {
-            following: this.following,
+            following: this.#following,
             uri: this.uri,
             name: this.name,
             description: this.description,
             owner: this.owner.toJSON(),
-            members: this.members.map(member => ({ user: member.user.toJSON(), isOwner: member.isOwner, permissionLevel: member.permissionLevel })),
+            members: (this.members || [])
+                .map(member => ({ user: member.user.toJSON(), isOwner: member.isOwner, permissionLevel: member.permissionLevel })),
             images: this.images,
         }
     }

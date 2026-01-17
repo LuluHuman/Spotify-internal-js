@@ -9,8 +9,6 @@ export function mapPlaylist(spotify: Spotify, apiPlaylist: APIPlaylist) {
     const content: { [key: number]: { track?: TrackSnippet, uid: string, addedAt: Date } } = {}
     const start_i = apiPlaylist.data.playlistV2.content.pagingInfo.offset
     apiPlaylist.data.playlistV2.content.items.forEach((track, i) => {
-        console.log(track.itemV2);
-
         content[i + start_i] = {
             addedAt: new Date(track.addedAt.isoString),
             //TODO fix USER

@@ -2,13 +2,30 @@
 
 A Typescript library with nearly full coverage of the internal Spotitfy API within the developer documentation
 
-## Get started
+## Installation
+
+Clone the repo into your app
+
+```bash
+    git clone https://github.com/LuluHuman/Spotify-internal-js.git
+```
+
+## Example usage
 
 ```ts
-import { Spotify } from "./Spotify";
-const client = new Spotify({})
-client.login("sp_dc token")
-client.onReady(() => {
-    // some stuff here
-})
+import { Spotify, SpotifyIdentifier } from "./Spotify-internal-js";
+const client = new Spotify({});
+client.login("your sp_dc token");
+client.onReady(async () => {
+	// create a song identifyer from url
+	const songIdentifyer = new SpotifyIdentifier(
+		"https://open.spotify.com/track/0laMYIfB9WohTEOTjG6RDz",
+	);
+
+	//fetch the song
+	const song = await client.tracks.fetch(songIdentifyer);
+
+	//print the title
+	console.log(song.name); //もっふもふ DE よいのじゃよ
+});
 ```
