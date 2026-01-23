@@ -1,4 +1,4 @@
-import { ImageSrc } from "./APIGeneric"
+import { ImageObject } from "./APIGeneric"
 import { ContentRating } from "./APITrack"
 
 export interface APICurrentUser {
@@ -9,7 +9,7 @@ export interface APICurrentUser {
                 "uri": string
                 "username": string
                 "avatar": {
-                    "sources": ImageSrc[]
+                    "sources": ImageObject[]
                 },
                 "avatarBackgroundColor": number,
             }
@@ -77,7 +77,7 @@ interface APIUserTopArtists {
             "__typename": "Artist",
             "profile": { "name": string },
             "uri": string,
-            "visuals": { "avatarImage": { "sources": ImageSrc[] } }
+            "visuals": { "avatarImage": { "sources": ImageObject[] } }
         }
     }[],
     "totalCount": number
@@ -89,7 +89,7 @@ interface APIUserTopTracks {
         {
             "data": {
                 "__typename": "Track",
-                "albumOfTrack": { "coverArt": { "sources": ImageSrc[] }, "name": string, "uri": string },
+                "albumOfTrack": { "coverArt": { "sources": ImageObject[] }, "name": string, "uri": string },
                 "artists": { "items": { "profile": { "name": string }, "uri": string }[] },
                 "contentRating": { "label": ContentRating },
                 "duration": { "totalMilliseconds": number },

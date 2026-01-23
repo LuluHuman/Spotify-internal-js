@@ -1,4 +1,4 @@
-import { ImageSrc, Playability } from "./APIGeneric"
+import { ImageObject, Playability } from "./APIGeneric"
 
 export type ContentRating = "EXPLICIT" | "NONE"
 export interface APITrack {
@@ -57,7 +57,7 @@ export interface APITracks {
     "data": {
         "tracks": {
             "__typename": "Track",
-            "albumOfTrack": { "coverArt": { "sources": ImageSrc[] }, "name": string, "uri": string },
+            "albumOfTrack": { "coverArt": { "sources": ImageObject[] }, "name": string, "uri": string },
             "artists": {
                 "items": { "profile": { "name": string }, "uri": string }[]
             },
@@ -86,7 +86,7 @@ export interface APISavedTracks {
                                     "__typename": "Track",
                                     "albumOfTrack": {
                                         "artists": { "items": { "profile": { "name": string }, "uri": string }[] },
-                                        "coverArt": { "sources": ImageSrc[] },
+                                        "coverArt": { "sources": ImageObject[] },
                                         "name": string,
                                         "uri": string
                                     },

@@ -1,6 +1,6 @@
 import { Spotify } from "../../";
 import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
-import { ImageSrc } from "../types/APIGeneric";
+import { ImageObject } from "../types/APIGeneric";
 import { Track, TrackSnippet } from "./Track";
 import { User } from "./User";
 
@@ -12,7 +12,7 @@ export class Playlist {
     description: string
     owner: User
     members?: { user: User, "isOwner": boolean, "permissionLevel": "CONTRIBUTOR" | "VIEWER" }[]
-    images: ImageSrc[]
+    images: ImageObject[]
     constructor(spotify: Spotify, playlist: {
         following?: boolean
         uri: string
@@ -20,7 +20,7 @@ export class Playlist {
         description: string
         owner: User
         members?: { user: User, "isOwner": boolean, "permissionLevel": "CONTRIBUTOR" | "VIEWER" }[]
-        images: ImageSrc[]
+        images: ImageObject[]
         content?: { [key: number]: { track?: TrackSnippet, uid: string, addedAt: Date } }
 
     }) {

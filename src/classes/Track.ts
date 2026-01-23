@@ -1,7 +1,7 @@
 import { Spotify } from "../../";
 import { AlbumSnippet } from "./Album";
 import { ArtistSnippet } from "./Artist";
-import { ImageSrc } from "../types/APIGeneric";
+import { ImageObject } from "../types/APIGeneric";
 import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
 
 
@@ -68,7 +68,7 @@ export class Track extends BaseTrack {
     licensor: { "uuid": string }
     addedAt: Date
     releasedOn: Date
-    images: ImageSrc[]
+    images: ImageObject[]
 
     constructor(spotify: Spotify, track: {
         saved?: boolean
@@ -88,7 +88,7 @@ export class Track extends BaseTrack {
         licensor: { "uuid": string }
         addedAt: Date
         releasedOn: Date
-        images: ImageSrc[]
+        images: ImageObject[]
     }) {
         super(spotify, track)
         this.gid = track.gid

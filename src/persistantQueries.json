@@ -19,7 +19,9 @@
     "followUsers": "c00e0cb6c7766e7230fc256cf4fe07aec63b53d1160a323940fce7b664e95596",
     "unfollowUsers": "c00e0cb6c7766e7230fc256cf4fe07aec63b53d1160a323940fce7b664e95596",
     "queryWhatsNewFeed": "3b53dede3c6054e8b7c962dd280eb6761c5d1c82b06b039f4110d76a62b4966b",
-
+    "queryShowMetadataV2": "26d0c98fef216dad02d31c359075c07d605974af8d82834f26e90f917f32555a",
+    "getEpisodeOrChapter": "8a62dbdeb7bd79605d7d68b01bcdf83f08bc6c6287ee1665ba012c748a4cf1f3",
+    "queryPodcastEpisodes": "8e2826c5993383566cc08bf9f5d3301b69513c3f6acb8d706286855e57bf44b2",
     "searchDesktop": "fcad5a3e0d5af727fb76966f06971c19cfa2275e6ff7671196753e008611873c",
     "searchPlaylists": "af1730623dc1248b75a61a18bad1f47f1fc7eff802fb0676683de88815c958d8",
     "searchTracks": "131fd38c13431be963a851082dca0108a4200998b886e7e9d20a21fc51a36aaf",

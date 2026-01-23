@@ -1,4 +1,4 @@
-import { ImageSrc, Playability } from "./APIGeneric"
+import { ImageObject, Playability } from "./APIGeneric"
 
 export interface APIArtist {
     "data": {
@@ -17,7 +17,7 @@ export interface APIArtist {
             "visuals": {
                 "avatarImage": {
                     "extractedColors": { "colorRaw": { "hex": string } },
-                    "sources": ImageSrc[]
+                    "sources": ImageObject[]
                 },
                 "gallery": { "items": any[] }
             },
@@ -240,7 +240,7 @@ export interface ArtistUnionProfile {
 
 export interface AlbumArtistUnion {
     "copyright": { "items": { "text": string, "type": string }[] },
-    "coverArt": { "sources": ImageSrc[] },
+    "coverArt": { "sources": ImageObject[] },
     "date": {
         "day": number,
         "month": number,
@@ -250,7 +250,7 @@ export interface AlbumArtistUnion {
     "id": string
     "label": string
     "name": string
-    "playability":Playability
+    "playability": Playability
     "sharingInfo": { "shareId": string, "shareUrl": string },
     "tracks": { "totalCount": number },
     "type": "EP" | "SINGLE" | "ALBUM" | "COMPILATION",
@@ -274,7 +274,7 @@ export interface TrackArtistUnion {
         "duration": { "totalMilliseconds": number },
         "id": string
         "name": string
-        "playability":Playability
+        "playability": Playability
         "playcount": string
         "uri": string
     },

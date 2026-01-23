@@ -1,6 +1,6 @@
 import { host, Spotify } from "../../src/Spotify";
 import SpotifyIdentifier from "../helpers/SpotifyIdentifier";
-import { ImageSrc } from "../types/APIGeneric";
+import { ImageObject } from "../types/APIGeneric";
 
 export class BaseUser {
     spotify: Spotify
@@ -8,13 +8,13 @@ export class BaseUser {
     username: string
     name: string
     avatarBackgroundColor?: number
-    avatar?: ImageSrc[]
+    avatar?: ImageObject[]
     constructor(spotify: Spotify, apiUser: {
         uri: string,
         username: string,
         name: string,
         avatarBackgroundColor?: number,
-        avatar?: ImageSrc[],
+        avatar?: ImageObject[],
     }) {
         this.spotify = spotify
         this.uri = apiUser.uri

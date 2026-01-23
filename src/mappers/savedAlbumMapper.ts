@@ -1,9 +1,10 @@
 import { Spotify } from "../../";
 import { AlbumSnippet } from "../classes/Album";
 import { ArtistSnippet } from "../classes/Artist";
-import { APISavedAlbums } from "../types/APIAlbum";
+import { APIAlbumsWrapper } from "../types/APIAlbum";
+import { APILibraryPage } from "../types/APIGeneric";
 
-export function mapSavedAlbum(spotify: Spotify, apiAlbum: APISavedAlbums) {
+export function mapSavedAlbum(spotify: Spotify, apiAlbum: APILibraryPage<APIAlbumsWrapper>) {
     return apiAlbum.data.me.libraryV3.items.map((album) => (
         new AlbumSnippet(spotify, {
             saved: true,

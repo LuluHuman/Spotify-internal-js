@@ -1,4 +1,4 @@
-import { ImageSrc } from "../types/APIGeneric"
+import { ImageObject } from "../types/APIGeneric"
 import { Spotify } from "../../"
 import { ArtistSnippet } from "./Artist"
 import { TrackSnippet } from "./Track"
@@ -6,11 +6,11 @@ import { albumType } from "../types/APIAlbum"
 import SpotifyIdentifier from "../helpers/SpotifyIdentifier"
 
 export class BaseAlbum {
+    type: albumType
     #saved?: boolean
     spotify: Spotify
     name: string
     uri: string
-    type: albumType
     artists: ArtistSnippet[]
     date: {
         dateObject: Date,
@@ -70,7 +70,7 @@ export class AlbumSnippet extends BaseAlbum {
 export class Album extends BaseAlbum {
     label: string
     copyright: { text: string, type: string }[]
-    images: ImageSrc[]
+    images: ImageObject[]
     tracks: TrackSnippet[]
 
     constructor(spotify: Spotify, album: {
@@ -85,7 +85,7 @@ export class Album extends BaseAlbum {
         }
         label: string
         copyright: { text: string, type: string }[]
-        images: ImageSrc[]
+        images: ImageObject[]
         tracks: TrackSnippet[]
     }) {
         super(spotify, album)

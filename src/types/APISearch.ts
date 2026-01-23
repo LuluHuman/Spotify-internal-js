@@ -1,5 +1,5 @@
 import { albumType } from "./APIAlbum"
-import { ColorPalette, ColorValue, ImageSrc, Playability } from "./APIGeneric"
+import { ColorPalette, ColorValue, ImageObject, Playability } from "./APIGeneric"
 import { ContentRating } from "./APITrack"
 
 export interface APISearch {
@@ -35,7 +35,7 @@ interface APIAlbumSearch {
             "artists": { "items": { "profile": { "name": string }, "uri": string }[] },
             "coverArt": {
                 "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                "sources": ImageSrc[]
+                "sources": ImageObject[]
             },
             "date": { "year": number },
             "name": string,
@@ -80,7 +80,7 @@ interface APIArtistSearch {
                 "visuals": {
                     "avatarImage": {
                         "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                        "sources": ImageSrc[]
+                        "sources": ImageObject[]
                     }
                 }
             }
@@ -98,7 +98,7 @@ interface APISearchEpisodes {
                 "contentRating": { "label": ContentRating },
                 "coverArt": {
                     "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                    "sources": ImageSrc[]
+                    "sources": ImageObject[]
                 },
                 "description": string,
                 "duration": { "totalMilliseconds": number },
@@ -111,7 +111,7 @@ interface APISearchEpisodes {
                     "__typename": "PodcastResponseWrapper",
                     "data": {
                         "__typename": "Podcast",
-                        "coverArt": { "sources": ImageSrc[] },
+                        "coverArt": { "sources": ImageObject[] },
                         "mediaType": string,
                         "name": string,
                         "publisher": { "name": string },
@@ -159,7 +159,7 @@ interface APISearchGenres {
                 "__typename": "Genre",
                 "image": {
                     "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                    "sources": ImageSrc[]
+                    "sources": ImageObject[]
                 },
                 "name": string,
                 "uri": string
@@ -181,7 +181,7 @@ interface APISearchPlaylists {
                 "images": {
                     "items": {
                         "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                        "sources": ImageSrc[]
+                        "sources": ImageObject[]
                     }[]
                 },
                 "name": string,
@@ -189,7 +189,7 @@ interface APISearchPlaylists {
                     "__typename": "UserResponseWrapper",
                     "data": {
                         "__typename": "User",
-                        "avatar": { "sources": ImageSrc[] },
+                        "avatar": { "sources": ImageObject[] },
                         "name": string,
                         "uri": string,
                         "username": string
@@ -221,7 +221,7 @@ interface APISearchPodcasts {
                 "__typename": "Podcast",
                 "coverArt": {
                     "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                    "sources": ImageSrc[]
+                    "sources": ImageObject[]
                 },
                 "mediaType": "AUDIO" | "VIDEO",
                 "name": string,
@@ -260,7 +260,7 @@ interface APISearchTracks {
                     "albumOfTrack": {
                         "coverArt": {
                             "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                            "sources": ImageSrc[]
+                            "sources": ImageObject[]
                         },
                         "id": string,
                         "name": string,
@@ -307,7 +307,7 @@ interface APISearchUsers {
                 "__typename": "User",
                 "avatar": {
                     "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                    "sources": ImageSrc[]
+                    "sources": ImageObject[]
                 },
                 "id": string
                 "displayName": string

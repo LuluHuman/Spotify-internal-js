@@ -2,11 +2,12 @@ import axios, { type AxiosRequestConfig } from "axios"
 import { getToken } from "./secretGenerator"
 import SpotifyIdentifier from "./helpers/SpotifyIdentifier"
 
-import { Album, AlbumSnippet, CurrentUser, User, Artist, ArtistSnippet, Playlist, Track, TrackSnippet, Operation } from "./classes"
+import { Album, AlbumSnippet, CurrentUser, User, Artist, ArtistSnippet, Playlist, Track, TrackSnippet, Show, } from "./classes"
 import {
     APIPlaylistAddItems, APIPlaylistContent, APIPlaylistPermissionChange, APIPlaylistRemoveItems, PlaylistPermission,
     APIAlbumsWrapper, AddLibraryItemsResponse, APIChange, RemoveLibraryItemsResponse,
     APIPlaylistChange, APITrack, APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists,
+    APIShow,
 } from "./types"
 import {
     mapSavedAlbum, mapArtist, mapPlaylist,
@@ -19,6 +20,10 @@ import { mapTrackCanvas } from "./mappers/trackMapper"
 import { APILyrics } from "./classes/Track"
 import SpotifyPlayer from "./helpers/SpotifyPlayer"
 import { mapSearchByType } from "./mappers/searchMapper"
+import { GraphQL } from "./helpers/GraphQL"
+import { mapEpisode, mapSavedEpisodes, mapSavedPodcast, mapShow, mapShowItems } from "./mappers/podcastMapper"
+import { APIPodcastWrapper, APIShowEpisode, APIShowEpisodes } from "./types/APIPodcast"
+import { Episode } from "./classes/Podcast"
 
 export const host = {
     "pub": "https://api.spotify.com/v1",
@@ -40,7 +45,7 @@ export class Spotify {
     user?: CurrentUser
     isReady: boolean
     ready: (() => any)[]
-    operation: Operation
+    graphQL: GraphQL
 
     #internal: {
         playlistDeltaBuilder: (newAttributes: {
@@ -103,7 +108,14 @@ export class Spotify {
         //fetchRelated
     }
     //TODO categoties
-    //TODO episodes
+    episodes: {
+        fetch: (episodeIdentifyer: SpotifyIdentifier) => Promise<Episode>
+        //fetchMany
+        fetchSaved: (options?: { offset: number, limit: number }) => Promise<Episode[]>
+        addToLibrary: (showIdentifiers: SpotifyIdentifier[]) => Promise<AddLibraryItemsResponse>
+        removeFromLibrary: (showIdentifiers: SpotifyIdentifier[]) => Promise<RemoveLibraryItemsResponse>
+        checkSaved: (episodeIdentifiers: SpotifyIdentifier[]) => Promise<(boolean | "GenericError")[]>
+    }
     player?: SpotifyPlayer
     playlists: {
         fetch: (playlistIdentifiers: SpotifyIdentifier, options?: { limit: number; offset: number; } | undefined) => Promise<Playlist>
@@ -114,13 +126,25 @@ export class Spotify {
         fetchItems: (playlistIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => Promise<APIPlaylistContent["data"]["playlistV2"]["content"]>
         addItems: (playlistIdentifier: SpotifyIdentifier, tracksPos: { tracksUris: string[]; moveType?: "AFTER_UID" | "BOTTOM_OF_PLAYLIST" | undefined; fromUid?: string | undefined; }) => Promise<APIPlaylistAddItems>
         removeItems: (playlistIdentifier: SpotifyIdentifier, trackUIds: string[]) => Promise<APIPlaylistRemoveItems>
-        fetchOwned: (options?: { offset: number, limit: number }) => Promise<APIAlbumsWrapper[]>
+        fetchOwned: (options?: { offset: number, limit: number }) => Promise<unknown[]>
         create: ({ name, description }: { name?: string | undefined; description?: string | undefined }) => Promise<{ uri: string; revision: string; }>
         followMany: (playlistIdentifiers: SpotifyIdentifier[]) => Promise<APIChange>
         unfollowMany: (playlistIdentifiers: SpotifyIdentifier[]) => Promise<APIChange>
     }
-    //TODO search
-    //TODO shows
+    show: {
+        fetch: (showIdentifier: SpotifyIdentifier) => Promise<Show>
+        //fetchMany
+        fetchSaved: (options?: { offset: number, limit: number }) => Promise<Show[]>
+        fetchEpisodes: (playlistIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => Promise<{
+            limit: number;
+            offset: number | null;
+            total: number;
+            items: Episode[];
+        }>
+        addToLibrary: (showIdentifiers: SpotifyIdentifier[]) => Promise<AddLibraryItemsResponse>
+        removeFromLibrary: (showIdentifiers: SpotifyIdentifier[]) => Promise<RemoveLibraryItemsResponse>
+        checkSaved: (showIdentifiers: SpotifyIdentifier[]) => Promise<(boolean | "GenericError")[]>
+    }
     tracks: {
         fetch: (trackIdentifier: SpotifyIdentifier) => Promise<Track>
         fetchMany: (trackIdentifiers: SpotifyIdentifier[]) => Promise<TrackSnippet[]>
@@ -165,7 +189,7 @@ export class Spotify {
         };
         this.ready = []
         this.isReady = false
-        this.operation = new Operation(this)
+        this.graphQL = new GraphQL(this)
 
         this.#internal = {
             playlistDeltaBuilder: (newAttributes: {
@@ -216,53 +240,68 @@ export class Spotify {
         }
         this.albums = {
             fetch: async (albumIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => {
-                const album = await this.operation.getAlbum(albumIdentifier.uri, options)
+                const album = await this.graphQL.getAlbum(albumIdentifier.uri, options)
                 return mapAlbum(this, album.data.albumUnion)
             },
             fetchSaved: async (options?: { offset: number, limit: number }) => {
-                const req = await this.operation.libraryV3({ filters: ["Albums"], limit: options?.limit, offset: options?.offset })
+                const req = await this.graphQL.libraryV3<APIAlbumsWrapper>({ filters: ["Albums"], limit: options?.limit, offset: options?.offset })
                 return mapSavedAlbum(this, req)
             },
             checkSaved: async (albumIdentifiers: SpotifyIdentifier[]) => {
-                return this.operation.areEntitiesInLibrary(albumIdentifiers.map(id => id.uri))
+                return this.graphQL.areEntitiesInLibrary(albumIdentifiers.map(id => id.uri))
             },
             addToLibrary: async (albumIdentifiers: SpotifyIdentifier[]) => {
-                return this.operation.addToLibrary(albumIdentifiers.map(id => id.uri))
+                return this.graphQL.addToLibrary(albumIdentifiers.map(id => id.uri))
             },
             removeFromLibrary: async (albumIdentifiers: SpotifyIdentifier[]) => {
-                return this.operation.removeFromLibrary(albumIdentifiers.map(id => id.uri))
+                return this.graphQL.removeFromLibrary(albumIdentifiers.map(id => id.uri))
             },
             fetchNewReleases: async (options?: { limit: number, offset: number }) => {
-                const queryWhatsNewFeed = await this.operation.queryWhatsNewFeed(["ALBUM"], { limit: options?.limit, offset: options?.offset, })
+                const queryWhatsNewFeed = await this.graphQL.queryWhatsNewFeed(["ALBUM"], { limit: options?.limit, offset: options?.offset, })
                 return mapNewAlbums(this, queryWhatsNewFeed)
             }
         }
         this.artists = {
             fetch: async (artistIdentifier: SpotifyIdentifier) => {
-                const req = await this.operation.queryArtistOverview(artistIdentifier.uri)
+                const req = await this.graphQL.queryArtistOverview(artistIdentifier.uri)
                 return mapArtist(this, req)
             },
             follow: (artistIdentifiers: SpotifyIdentifier[]) => {
-                return this.operation.addToLibrary(artistIdentifiers.map(id => id.uri))
+                return this.graphQL.addToLibrary(artistIdentifiers.map(id => id.uri))
             },
             unfollow: (artistIdentifiers: SpotifyIdentifier[]) => {
-                return this.operation.removeFromLibrary(artistIdentifiers.map(id => id.uri))
+                return this.graphQL.removeFromLibrary(artistIdentifiers.map(id => id.uri))
             },
             checkFollowing: async (artistIdentifiers: SpotifyIdentifier[]) => {
-                return this.operation.areEntitiesInLibrary(artistIdentifiers.map(id => id.uri))
+                return this.graphQL.areEntitiesInLibrary(artistIdentifiers.map(id => id.uri))
             }
+        }
+        this.episodes = {
+            fetch: async (episodeIdentifyer: SpotifyIdentifier) => {
+                const req = await this.graphQL.getEpisodeOrChapters(episodeIdentifyer.uri) as APIShowEpisode
+                return mapEpisode(this, req)
+            },
+            fetchSaved: async (options?: { offset: number, limit: number }) => {
+                const req = await this.playlists.fetchItems(new SpotifyIdentifier("spotify:playlist:37i9dQZF1FgnTBfUlzkeKt"), options)
+                return mapSavedEpisodes(this, req)
+            },
+            addToLibrary: async (episodeIdentifiers: SpotifyIdentifier[]) => this.graphQL.addToLibrary(episodeIdentifiers.map(id => id.uri)),
+            removeFromLibrary: async (episodeIdentifiers: SpotifyIdentifier[]) => this.graphQL.removeFromLibrary(episodeIdentifiers.map(id => id.uri)),
+            checkSaved: async (episodeIdentifiers: SpotifyIdentifier[]) => {
+                return this.graphQL.areEntitiesInLibrary(episodeIdentifiers.map(id => id.uri))
+            },
         }
         this.playlists = {
             fetch: async (playlistIdentifier: SpotifyIdentifier, options?: { limit: number, offset: number }) => {
-                const playlist = await this.operation.fetchPlaylist(playlistIdentifier.uri, options)
+                const playlist = await this.graphQL.fetchPlaylist(playlistIdentifier.uri, options)
                 return mapPlaylist(this, playlist)
             },
             fetchOwned: async (options?: { offset: number, limit: number }) => {
-                const req = await this.operation.libraryV3({ filters: ["Playlists"], limit: options?.limit, offset: options?.offset })
+                const req = await this.graphQL.libraryV3<unknown>({ filters: ["Playlists"], limit: options?.limit, offset: options?.offset })
                 return req.data.me.libraryV3.items
             },
             fetchItems: async (playlistIdentifier: SpotifyIdentifier, options?: { offset: number, limit: number }) => {
-                const playlist = await this.operation.fetchPlaylistContents(playlistIdentifier.uri, options)
+                const playlist = await this.graphQL.fetchPlaylistContents(playlistIdentifier.uri, options)
                 return playlist
             },
             update: async (playlistIdentifier: SpotifyIdentifier, newAttributes: { name?: string, description?: string }) => {
@@ -298,10 +337,10 @@ export class Spotify {
                 return change as APIPlaylistChange
             },
             addItems: async (playlistIdentifier: SpotifyIdentifier, tracksPos: { tracksUris: string[], moveType?: "AFTER_UID" | "BOTTOM_OF_PLAYLIST", fromUid?: string }) => {
-                return this.operation.addToPlaylist(playlistIdentifier.uri, tracksPos)
+                return this.graphQL.addToPlaylist(playlistIdentifier.uri, tracksPos)
             },
             removeItems: async (playlistIdentifier: SpotifyIdentifier, trackUIds: string[]) => {
-                return this.operation.removeFromPlaylist(playlistIdentifier.uri, trackUIds)
+                return this.graphQL.removeFromPlaylist(playlistIdentifier.uri, trackUIds)
             },
             followMany: async (playlistIdentifiers: SpotifyIdentifier[]) => {
                 return this.#internal.changeFollowingPlaylist({ following: true, playlistUris: playlistIdentifiers.map(id => id.uri) })
@@ -319,6 +358,25 @@ export class Spotify {
                 return create
             }
         }
+        this.show = {
+            fetch: async (showIdentifyer: SpotifyIdentifier) => {
+                const req = await this.graphQL.queryShowMetadataV2(showIdentifyer.uri) as APIShow
+                return mapShow(this, req)
+            },
+            fetchEpisodes: async (showIdentifyer: SpotifyIdentifier, options?: { offset: number, limit: number }) => {
+                const req = await this.graphQL.queryPodcastEpisodes(showIdentifyer.uri, options) as APIShowEpisodes
+                return mapShowItems(this, req)
+            },
+            fetchSaved: async (options?: { offset: number, limit: number }) => {
+                const req = await this.graphQL.libraryV3<APIPodcastWrapper>({ filters: ["Podcasts & Shows"], limit: options?.limit, offset: options?.offset })
+                return mapSavedPodcast(this, req)
+            },
+            checkSaved: async (showIdentifiers: SpotifyIdentifier[]) => {
+                return this.graphQL.areEntitiesInLibrary(showIdentifiers.map(id => id.uri))
+            },
+            addToLibrary: async (showIdentifiers: SpotifyIdentifier[]) => this.graphQL.addToLibrary(showIdentifiers.map(id => id.uri)),
+            removeFromLibrary: async (showIdentifiers: SpotifyIdentifier[]) => this.graphQL.removeFromLibrary(showIdentifiers.map(id => id.uri)),
+        }
         this.tracks = {
             fetch: async (trackIdentifier: SpotifyIdentifier) => {
                 const url = `${host.internal}/metadata/4/track/${trackIdentifier.gid}`
@@ -326,20 +384,20 @@ export class Spotify {
                 return mapTrack(this, req)
             },
             fetchMany: async (trackIdentifiers: SpotifyIdentifier[]) => {
-                const tracks = await this.operation.decorateContextTracks(trackIdentifiers.map(id => id.uri))
+                const tracks = await this.graphQL.decorateContextTracks(trackIdentifiers.map(id => id.uri))
                 return mapTracks(this, tracks)
             },
             fetchSaved: async (option?: { limit: number, offset: number }) => {
-                const savedTracks = await this.operation.fetchLibraryTracks(option)
+                const savedTracks = await this.graphQL.fetchLibraryTracks(option)
                 return mapSavedTracks(this, savedTracks)
             },
             checkSaved: async (trackIdentifiers: SpotifyIdentifier[]) => {
-                const isCurated = await this.operation.isCurated(trackIdentifiers.map(id => id.uri))
+                const isCurated = await this.graphQL.isCurated(trackIdentifiers.map(id => id.uri))
                 return mapCheckSaveTracks(isCurated)
             },
-            addToLibrary: async (trackIdentifiers: SpotifyIdentifier[]) => this.operation.addToLibrary(trackIdentifiers.map(id => id.uri)),
-            removeFromLibrary: async (trackIdentifiers: SpotifyIdentifier[]) => this.operation.removeFromLibrary(trackIdentifiers.map(id => id.uri)),
-            fetchCanvasURL: async (trackIdentifiers: SpotifyIdentifier) => mapTrackCanvas(await this.operation.getCanvas(trackIdentifiers.uri)),
+            addToLibrary: async (trackIdentifiers: SpotifyIdentifier[]) => this.graphQL.addToLibrary(trackIdentifiers.map(id => id.uri)),
+            removeFromLibrary: async (trackIdentifiers: SpotifyIdentifier[]) => this.graphQL.removeFromLibrary(trackIdentifiers.map(id => id.uri)),
+            fetchCanvasURL: async (trackIdentifiers: SpotifyIdentifier) => mapTrackCanvas(await this.graphQL.getCanvas(trackIdentifiers.uri)),
             fetchLyrics: async (trackIdentifiers: SpotifyIdentifier) => {
                 const url = `${host.internal}/color-lyrics/v2/track/${trackIdentifiers.id}/image/noimagejustlyrics?format=json`;
                 return this.request(url) as Promise<APILyrics>
@@ -347,21 +405,21 @@ export class Spotify {
         }
         this.users = {
             me: async (): Promise<CurrentUser> => {
-                const user = await this.operation.profileAttributes()
+                const user = await this.graphQL.profileAttributes()
                 return mapCurrentUser(this, user)
             },
             fetchTopArtists: async ({ options, timeRange }: {
                 timeRange: "SHORT_TERM" | "MID_TERM" | "LONG_TERM"
                 options?: { offset?: number, limit?: number }
             }) => {
-                const topRes = await this.operation.userTopContent({ isArtist: true, timeRange, options })
+                const topRes = await this.graphQL.userTopContent({ isArtist: true, timeRange, options })
                 return mapTopArtists(this, topRes)
             },
             fetchTopTracks: async ({ options, timeRange }: {
                 timeRange: "SHORT_TERM" | "MID_TERM" | "LONG_TERM"
                 options?: { offset?: number, limit?: number }
             }) => {
-                const topRes = await this.operation.userTopContent({ isArtist: false, timeRange, options })
+                const topRes = await this.graphQL.userTopContent({ isArtist: false, timeRange, options })
                 return mapTopTracks(this, topRes)
             },
             fetch: async (userIdentifier: SpotifyIdentifier, options?: { playlist_limit?: number; artist_limit?: number; episode_limit?: number; }) => {
@@ -386,9 +444,9 @@ export class Spotify {
                 const userPlaylists = await this.request(host.internal + `/user-profile-view/v3/profile/${userIdentifier.id}/playlists?offset=${options?.offset || 0}&limit=${options?.limit || 200}`) as APIUserPlaylists
                 return mapUserPlaylists(this, userPlaylists)
             },
-            follow: async (userIdentifiers: SpotifyIdentifier[]) => this.operation.followUsers(userIdentifiers.map(id => id.uri)),
-            unfollow: async (userIdentifiers: SpotifyIdentifier[]) => this.operation.unfollowUsers(userIdentifiers.map(id => id.uri)),
-            checkFollowing: async (userIdentifiers: SpotifyIdentifier[]) => this.operation.isFollowingUsers(userIdentifiers.map(id => id.uri))
+            follow: async (userIdentifiers: SpotifyIdentifier[]) => this.graphQL.followUsers(userIdentifiers.map(id => id.uri)),
+            unfollow: async (userIdentifiers: SpotifyIdentifier[]) => this.graphQL.unfollowUsers(userIdentifiers.map(id => id.uri)),
+            checkFollowing: async (userIdentifiers: SpotifyIdentifier[]) => this.graphQL.isFollowingUsers(userIdentifiers.map(id => id.uri))
         }
     }
 
@@ -397,19 +455,18 @@ export class Spotify {
         query: string,
         options?: { limit?: number, offset?: number }
     ) {
-        const req = await this.operation.search(type, query, {
+        const req = await this.graphQL.search(type, query, {
             limit: options?.limit,
             offset: options?.offset,
         })
 
         return mapSearchByType(this, req, type)
     }
-
     async searchAll(
         query: string,
         options: { limit?: number, offset?: number, numberOfTop?: number }
     ) {
-        const req = await this.operation.search("desktop", query, {
+        const req = await this.graphQL.search("desktop", query, {
             limit: options?.limit,
             offset: options?.offset,
             numberOfTopResults: options?.numberOfTop
@@ -457,7 +514,6 @@ export class Spotify {
                 });
         });
     }
-
     login(sp_dc: string) {
         return new Promise((resp) => {
             const init = async (res: any) => {
@@ -491,7 +547,6 @@ export class Spotify {
             }
         });
     }
-
     onReady(func: () => any) {
         if (this.isReady) func()
         this.ready.push(func)

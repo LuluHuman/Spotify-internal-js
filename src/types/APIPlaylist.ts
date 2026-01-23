@@ -1,4 +1,6 @@
-import { APIChange, ColorPalette, ColorValue, ImageSrc, Playability } from "./APIGeneric"
+import { SrvRecord } from "node:dns"
+import { APIChange, ColorPalette, ColorValue, datePrecision, ImageObject, Playability } from "./APIGeneric"
+import { ContentRating } from "./APITrack"
 
 
 export type PlaylistPermission = "CONTRIBUTOR" | "VIEWER" | "BLOCKED"
@@ -29,7 +31,7 @@ export interface APIPlaylist {
                 }[],
                 "totalCount": number
             },
-            "images": { "items": [{ "sources": ImageSrc[] }] },
+            "images": { "items": [{ "sources": ImageObject[] }] },
             "content": {
                 "__typename": "PlaylistItemsPage",
                 "items": APIPlaylistItem[],
@@ -71,7 +73,7 @@ interface APIPlaylistItem {
     "addedAt": { "isoString": string },
     "addedBy": APIPlaylistUser,
     "attributes": any[],
-    "itemV2": APIPlaylistTrackResponseWrapper,
+    "itemV2": APIPlaylistTrackResponseWrapper | APIEpisodeOrChapterResponseWrapper,
     "itemV3": APIPlaylistEntityResponseWrapper,
     "uid": string
 }
@@ -79,7 +81,7 @@ interface APIPlaylistItem {
 interface APIPlaylistUser {
     "data": {
         "__typename": "User",
-        "avatar": { "sources": ImageSrc[] },
+        "avatar": { "sources": ImageObject[] },
         "name": string
         "uri": string
         "username": string
@@ -92,7 +94,7 @@ interface APIPlaylistTrackResponseWrapper {
         "__typename": "Track",
         "albumOfTrack": {
             "artists": { "items": { "profile": { "name": string }, "uri": string }[] },
-            "coverArt": { "sources": ImageSrc },
+            "coverArt": { "sources": ImageObject },
             "name": string,
             "uri": string
         },
@@ -103,10 +105,73 @@ interface APIPlaylistTrackResponseWrapper {
         "trackDuration": { "totalMilliseconds": number },
         "mediaType": string//"AUDIO",
         "name": string,
-        "playability":Playability
+        "playability": Playability
         "playcount": string,
         "trackNumber": number,
         "uri": string
+    }
+}
+
+
+export interface APIEpisodeOrChapterResponseWrapper {
+    "__typename": "EpisodeOrChapterResponseWrapper",
+    "data": {
+        "__typename": "Episode",
+        "contentRating": {
+            "label": ContentRating
+        },
+        "coverArt": { "sources": ImageObject[] },
+        "description": string
+        "episodeDuration": { "totalMilliseconds": number },
+        "gatedEntityRelations": unknown[],
+        "language": { "code": string },
+        "name": string,
+        "playability": Playability
+        "playedState": {
+            "playPositionMilliseconds": number,
+            "state": "NOT_STARTED" | string,
+        },
+        "podcastV2": {
+            "data": {
+                "__typename": "Podcast",
+                "coverArt": {
+                    "sources": ImageObject[]
+                },
+                "mediaType": "MIXED" | string,
+                "name": string,
+                "publisher": {
+                    "name": string
+                },
+                "uri": string
+            }
+        },
+        "releaseDate": {
+            "isoString": string,
+            "precision": datePrecision
+        },
+        "restrictions": { "paywallContent": boolean },
+        "uri": string,
+        "visualIdentity": {
+            "sixteenByNineCoverImage": {
+                "image": {
+                    "data": {
+                        "__typename": "ImageV2",
+                        "sources": {
+                            "maxHeight": number, "maxWidth": number, "url": string
+                        }[]
+                    }
+                }
+            },
+            "squareCoverImage": {
+                "__typename": "VisualIdentityImage",
+                "extractedColorSet": {
+                    "encoreBaseSetTextColor": ColorValue
+                    "highContrast": ColorPalette
+                    "higherContrast": ColorPalette
+                    "minContrast": ColorPalette
+                }
+            }
+        }
     }
 }
 

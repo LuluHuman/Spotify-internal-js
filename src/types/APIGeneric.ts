@@ -1,4 +1,4 @@
-export interface ImageSrc { height: number, url: string, width: number }
+export interface ImageObject { height: number, url: string, width: number }
 export interface ColorValue {
     alpha: number
     blue: number
@@ -34,4 +34,22 @@ export interface APIChange {
     "resultingRevisions": string[],
     "multipleHeads": boolean,
     "changesRequireResync": boolean
+}
+
+export interface APILibraryPage<T> {
+    "data": {
+        "me": {
+            "libraryV3": {
+                "__typename": "LibraryPage"
+                "availableFilters": []
+                "availableSortOrders": { "id": string, "name": string }[]
+                "breadcrumbs": [],
+                "items": T[]
+                "pagingInfo": { "limit": number, "offset": number },
+                "selectedFilters": [{ "id": "Albums", "name": "Albums" }],
+                "selectedSortOrder": { "id": "Alphabetical", "name": "Alphabetical" },
+                "totalCount": number
+            }
+        }
+    }
 }

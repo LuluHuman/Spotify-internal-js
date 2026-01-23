@@ -5,7 +5,7 @@ import { AddLibraryItemsResponse, APIChange, RemoveLibraryItemsResponse } from "
 import { APIPlaylistChange } from "./APIPlaylist"
 import { APITrack } from "./APITrack"
 import { APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists } from "./APIUsers"
-
+import { APIShow } from "./APIPodcast"
 
 export {
     SpotifyWebhook,
@@ -14,5 +14,6 @@ export {
     AddLibraryItemsResponse, APIChange, RemoveLibraryItemsResponse,
     APIPlaylistChange,
     APITrack,
-    APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists,
+    APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists, APIShow
+
 }

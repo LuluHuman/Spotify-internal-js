@@ -1,4 +1,4 @@
-import { ColorPalette, ColorValue, datePrecision, ImageSrc, Playability } from "./APIGeneric"
+import { ColorPalette, ColorValue, datePrecision, ImageObject, Playability } from "./APIGeneric"
 
 export type albumType = "EP" | "SINGLE" | "ALBUM" | "COMPILATION"
 export interface APIError {
@@ -25,7 +25,7 @@ export interface APIAlbum {
             profile: { name: string }
             sharingInfo: { shareUrl: string }
             uri: string
-            visuals: { avatarImage: { sources: ImageSrc[] } }
+            visuals: { avatarImage: { sources: ImageObject[] } }
         }[]
         totalCount: number
     }
@@ -148,7 +148,7 @@ export interface APIWhatsNewFeedItems {
             "data": {
                 "__typename": "Album",
                 "artists": { "items": { "profile": { "name": string }, "uri": string }[] },
-                "coverArt": { "sources": ImageSrc[] },
+                "coverArt": { "sources": ImageObject[] },
                 "date": { "isoString": string, "precision": datePrecision },
                 "name": string,
                 "albumType": albumType,
@@ -182,52 +182,19 @@ export interface APIAlbumsWrapper {
             },
             "coverArt": {
                 "extractedColors": { "colorDark": { "hex": string, "isFallback": boolean } },
-                "sources": [
-                    {
-                        "height": 300,
-                        "url": string
-                        "width": 300
-                    },
-                    {
-                        "height": 64,
-                        "url": string
-                        "width": 64
-                    },
-                    {
-                        "height": 640,
-                        "url": string
-                        "width": 640
-                    }
-                ]
+                "sources": ImageObject[]
             },
             "date": {
                 isoString: string
-                precision: "DAY" | "MONTH" | "YEAR"
+                precision: datePrecision
             }
             name: string
             playability: Playability
-            type: "EP" | "SINGLE" | "ALBUM" | "COMPILATION"
+            type: albumType
             "uri": string
         }
     },
     "pinnable": boolean,
     "pinned": boolean,
     "playedAt": { "isoString": string }
-}
-export interface APISavedAlbums {
-    "data": {
-        "me": {
-            "libraryV3": {
-                "__typename": "LibraryPage"
-                "availableFilters": []
-                "availableSortOrders": { "id": string, "name": string }[]
-                "breadcrumbs": [],
-                "items": APIAlbumsWrapper[]
-                "pagingInfo": { "limit": number, "offset": number },
-                "selectedFilters": [{ "id": "Albums", "name": "Albums" }],
-                "selectedSortOrder": { "id": "Alphabetical", "name": "Alphabetical" },
-                "totalCount": number
-            }
-        }
-    }
 }

@@ -1,6 +1,6 @@
 import { Spotify } from "../../"
 import SpotifyIdentifier from "../helpers/SpotifyIdentifier"
-import { ImageSrc } from "../types/APIGeneric"
+import { ImageObject } from "../types/APIGeneric"
 import { AlbumSnippet } from "./Album"
 
 export class BaseArtist {
@@ -8,14 +8,14 @@ export class BaseArtist {
     spotify: Spotify
     uri: string
     name: string
-    images?: ImageSrc[]
+    images?: ImageObject[]
 
     constructor(spotify: Spotify,
         { following: saved, uri, name, images }: {
             following?: boolean
             uri: string
             name: string
-            images?: ImageSrc[]
+            images?: ImageObject[]
         }
     ) {
         this.following = saved
@@ -54,8 +54,8 @@ export class ArtistSnippet extends BaseArtist {
 
 
 export class Artist extends BaseArtist {
-    imageHeader: ImageSrc[]
-    imageAvatar: ImageSrc[]
+    imageHeader: ImageObject[]
+    imageAvatar: ImageObject[]
     externalLinks: { "name": string, "url": string }[]
     verified: boolean
     stats: {
@@ -80,10 +80,10 @@ export class Artist extends BaseArtist {
     constructor(spotify: Spotify, artist: {
         uri: string,
         name: string,
-        images: ImageSrc[],
+        images: ImageObject[],
         following: boolean,
-        imageHeader: ImageSrc[],
-        imageAvatar: ImageSrc[],
+        imageHeader: ImageObject[],
+        imageAvatar: ImageObject[],
         externalLinks: { "name": string, "url": string }[],
         verified: boolean,
         stats: {

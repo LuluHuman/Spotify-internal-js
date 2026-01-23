@@ -14,9 +14,6 @@ export function mapArtist(spotify: Spotify, apiAlbum: APIArtist) {
         return day + month + year - 6.216847e+13
     }
 
-    console.log(new Date(mapDate(apiAlbum.data.artistUnion.discography.latest?.date)));
-
-
     const mapAlbum = (album: { "releases": { "items": AlbumArtistUnion[] } }[]) => {
         return album.map(x => x.releases.items.map(alb => new AlbumSnippet(spotify, {
             saved: undefined,
