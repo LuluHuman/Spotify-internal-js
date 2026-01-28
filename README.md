@@ -17,13 +17,13 @@ import { Spotify, SpotifyIdentifier } from "./Spotify-internal-js";
 const client = new Spotify({});
 client.login("your sp_dc token");
 client.onReady(async () => {
-	// create a song identifyer from url
-	const songIdentifyer = new SpotifyIdentifier(
+	// create a song Identifier from url
+	const songIdentifier = new SpotifyIdentifier(
 		"https://open.spotify.com/track/0laMYIfB9WohTEOTjG6RDz",
 	);
 
 	//fetch the song
-	const song = await client.tracks.fetch(songIdentifyer);
+	const song = await client.tracks.fetch(songIdentifier);
 
 	//print the title
 	console.log(song.name); //もっふもふ DE よいのじゃよ

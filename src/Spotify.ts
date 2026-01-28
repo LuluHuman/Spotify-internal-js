@@ -1,30 +1,28 @@
 import axios, { type AxiosRequestConfig } from "axios"
-import { getToken } from "./secretGenerator"
-import SpotifyIdentifier from "./helpers/SpotifyIdentifier"
-
-import { Album, AlbumSnippet, CurrentUser, User, Artist, ArtistSnippet, Playlist, Track, TrackSnippet, Show, } from "./classes"
-import {
-    APIPlaylistAddItems, APIPlaylistContent, APIPlaylistPermissionChange, APIPlaylistRemoveItems, PlaylistPermission,
-    APIAlbumsWrapper, AddLibraryItemsResponse, APIChange, RemoveLibraryItemsResponse,
-    APIPlaylistChange, APITrack, APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists,
-    APIShow,
-} from "./types"
-import {
-    mapSavedAlbum, mapArtist, mapPlaylist,
-    mapCheckSaveTracks, mapSavedTracks, mapTrack, mapTracks,
-    fileTypeFromBuffer, mapAlbum, mapNewAlbums,
-    mapCurrentUser, mapTopArtists, mapTopTracks, mapUser, mapUserFollowers, mapUserFollowing, mapUserPlaylists,
-} from "./mappers"
-import { APIPlaylistDeltaAdd, APIPlaylistDeltaRemove } from "./types/APIPlaylist"
-import { mapTrackCanvas } from "./mappers/trackMapper"
-import { APILyrics } from "./classes/Track"
-import SpotifyPlayer from "./helpers/SpotifyPlayer"
-import { mapSearchByType } from "./mappers/searchMapper"
-import { GraphQL } from "./helpers/GraphQL"
-import { mapEpisode, mapSavedEpisodes, mapSavedPodcast, mapShow, mapShowItems } from "./mappers/podcastMapper"
-import { APIPodcastWrapper, APIShowEpisode, APIShowEpisodes } from "./types/APIPodcast"
-import { Episode } from "./classes/Podcast"
-
+import { getToken } from "./infra/Auth/secretGenerator"
+import { fileTypeFromBuffer } from 'file-type';
+import { APIPlaylistAddItems, APIPlaylistChange, APIPlaylistContent, APIPlaylistDeltaAdd, APIPlaylistDeltaRemove, APIPlaylistPermissionChange, APIPlaylistRemoveItems, PlaylistPermission } from "./domain/Playlist/Playlist.types"
+import { mapCheckSaveTracks, mapSavedTracks, mapTrack, mapTrackCanvas, mapTracks } from "./domain/Track/Track.mapper"
+import { APILyrics, Track, TrackSnippet } from "./domain/Track/Track"
+import SpotifyPlayer from "./domain/Player/Player"
+import { mapSearchByType } from "./domain/Search/Search.mapper"
+import { GraphQL } from "./infra/GraphQL/Client"
+import { mapEpisode, mapSavedEpisodes, mapSavedPodcast, mapShow, mapShowItems } from "./domain/Podcast/Podcast.mapper"
+import { APIPodcastWrapper, APIShow, APIShowEpisode, APIShowEpisodes } from "./domain/Podcast/Podcast.types"
+import { Episode, Show } from "./domain/Podcast/Podcast"
+import { Album, AlbumSnippet } from "./domain/Album/Album"
+import { mapAlbum, mapNewAlbums, mapSavedAlbum } from "./domain/Album/Album.mapper"
+import { APIAlbumsWrapper } from "./domain/Album/Album.types"
+import { Artist, ArtistSnippet } from "./domain/Artist/Artist"
+import { mapArtist } from "./domain/Artist/Artist.mapper"
+import { Playlist } from "./domain/Playlist/Playlist"
+import { APITrack } from "./domain/Track/Track.types"
+import { CurrentUser, User } from "./domain/User/User"
+import { mapCurrentUser, mapTopArtists, mapTopTracks, mapUser, mapUserFollowers, mapUserFollowing, mapUserPlaylists } from "./domain/User/User.mapper"
+import { APIUser, APIUserFollowers, APIUserFollowing, APIUserPlaylists } from "./domain/User/User.types"
+import { APIChange, AddLibraryItemsResponse, RemoveLibraryItemsResponse } from "./infra/api_types"
+import { mapPlaylist } from "./domain/Playlist/Playlist.mapper"
+import SpotifyIdentifier from "./infra/Identifier/SpotifyIdentifier";
 export const host = {
     "pub": "https://api.spotify.com/v1",
     "internal": "https://spclient.wg.spotify.com",

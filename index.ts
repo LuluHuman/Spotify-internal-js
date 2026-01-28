@@ -1,3 +1,3 @@
+import SpotifyIdentifier from "./src/infra/Identifier/SpotifyIdentifier";
 import { Spotify } from "./src/Spotify";
-import SpotifyIdentifier from "./src/helpers/SpotifyIdentifier";
 export { Spotify, SpotifyIdentifier }
