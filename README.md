@@ -1,3 +1,7 @@
+> [!note]
+> ### i have abandoned Spotify for Apple Music bcs of songs being overwritten
+> This project will no longer be developed anymore. good luck
+
 # Spotify Internal API js
 
 A Typescript library with nearly full coverage of the internal Spotitfy API within the developer documentation
